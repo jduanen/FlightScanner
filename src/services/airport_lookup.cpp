@@ -1,0 +1,118 @@
+#include "services/airport_lookup.h"
+
+#include <Arduino.h>
+
+#include <cctype>
+#include <cstring>
+
+#include "data/airports_lookup.h"
+
+namespace services::airport {
+
+static_assert(sizeof(data::airports::Entry) == 8, "airport Entry must be 8 bytes");
+static_assert(sizeof(data::airports::IataEntry) == 8, "airport IataEntry must be 8 bytes");
+
+namespace {
+
+void normalizeCode(const char* in, char* out, size_t out_len) {
+  if (out_len == 0) {
+    return;
+  }
+  out[0] = '\0';
+  if (in == nullptr) {
+    return;
+  }
+  size_t n = 0;
+  while (in[n] != '\0' && n + 1 < out_len && n < 4) {
+    const unsigned char c = static_cast<unsigned char>(in[n]);
+    out[n] = static_cast<char>(isupper(c) ? c : toupper(c));
+    ++n;
+  }
+  out[n] = '\0';
+}
+
+void readIataEntryAt(size_t index, data::airports::IataEntry* out) {
+  memcpy_P(out, &data::airports::kIataToIcao[index], sizeof(*out));
+}
+
+int compareFixed4(const char* a, const char* b) {
+  return strncmp(a, b, 4);
+}
+
+int compareProgmemIata(const char* a, size_t index) {
+  data::airports::IataEntry entry;
+  readIataEntryAt(index, &entry);
+  return compareFixed4(a, entry.iata);
+}
+
+bool findIataIndex(const char* iata, size_t* out_index) {
+  if (iata == nullptr || iata[0] == '\0' || out_index == nullptr) {
+    return false;
+  }
+
+  size_t lo = 0;
+  size_t hi = data::airports::kIataCount;
+  while (lo < hi) {
+    const size_t mid = lo + (hi - lo) / 2;
+    const int cmp = compareProgmemIata(iata, mid);
+    if (cmp == 0) {
+      *out_index = mid;
+      return true;
+    }
+    if (cmp < 0) {
+      hi = mid;
+    } else {
+      lo = mid + 1;
+    }
+  }
+  return false;
+}
+
+bool resolveToIcao(const char* code, char* icao_out) {
+  if (icao_out == nullptr) {
+    return false;
+  }
+  icao_out[0] = '\0';
+
+  char normalized[5];
+  normalizeCode(code, normalized, sizeof(normalized));
+  if (normalized[0] == '\0') {
+    return false;
+  }
+
+  if (normalized[3] != '\0') {
+    memcpy(icao_out, normalized, 4);
+    icao_out[4] = '\0';
+    return true;
+  }
+
+  char iata_key[4] = {normalized[0], normalized[1], normalized[2], '\0'};
+  size_t index = 0;
+  if (!findIataIndex(iata_key, &index)) {
+    return false;
+  }
+
+  data::airports::IataEntry entry;
+  readIataEntryAt(index, &entry);
+  memcpy(icao_out, entry.icao, 4);
+  icao_out[4] = '\0';
+  return true;
+}
+
+}  // namespace
+
+bool normalizeRouteCode(const char* code, char* icao_out, size_t icao_len) {
+  if (icao_len == 0 || icao_out == nullptr) {
+    return false;
+  }
+  icao_out[0] = '\0';
+  char resolved[5];
+  if (!resolveToIcao(code, resolved)) {
+    return false;
+  }
+  strncpy(icao_out, resolved, icao_len - 1);
+  icao_out[icao_len - 1] = '\0';
+  return icao_out[0] != '\0';
+}
+
+}  // namespace services::airport
