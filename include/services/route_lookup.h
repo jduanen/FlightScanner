@@ -12,23 +12,18 @@ namespace services::route {
 /** Which source supplied the airline/route data (serial log tag). */
 enum class ApiSource : uint8_t {
   kNone = 0,
-  kCache = 1,
-  kService = 2,  // AircraftRoute local service
-  kPrefix = 5,   // callsign-prefix fallback; value fixed for flash-cache compatibility
+  kService = 1,  // AircraftRoute local service
 };
 
 void init();
 
-/** Debounced persist of route cache to LittleFS (call from main loop). */
-void tickCacheFlush(unsigned long now_ms);
-
-/** Apply RAM/flash cache and prefix fallback during ADS-B polls (no live APIs). */
+/** Apply RAM cache during ADS-B polls (no live service calls). */
 void enrichAircraft(services::adsb::Aircraft* planes, size_t count, double center_lat,
                     double center_lon);
 
 /**
  * Flight-detail view opened or encoder moved to another aircraft.
- * immediate=true on open/tap; false on encoder steps (debounced before API).
+ * immediate=true on open/tap; false on encoder steps (debounced before service call).
  */
 void onFlightDetailSelected(const char* callsign, bool immediate = false);
 

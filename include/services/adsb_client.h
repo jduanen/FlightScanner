@@ -15,10 +15,13 @@ struct Aircraft {
   float track_deg;
   float gs_knots;
   char callsign[9];
-  /** Airline + route ICAO codes (from adsb.fi feed and/or route API waterfall). */
   char airline[28];
-  char route_origin[5];  /** Origin ICAO (e.g. KSFO). */
-  char route_dest[5];    /** Destination ICAO (e.g. KBOS). */
+  char route_origin[5];   /** Origin ICAO (e.g. KSFO). */
+  char route_dest[5];     /** Destination ICAO (e.g. KBOS). */
+  char origin_iata[4];    /** Origin IATA (e.g. SFO); from AircraftRoute service. */
+  char dest_iata[4];      /** Destination IATA; from AircraftRoute service. */
+  char origin_name[48];   /** Airport display name; from AircraftRoute service. */
+  char dest_name[48];     /** Airport display name; from AircraftRoute service. */
   char type[5];
   char alt[12];
   /** Feet per minute from baro_rate (fallback geom_rate); kVertRateUnknown if missing. */
@@ -65,6 +68,8 @@ void saveAltitudeFloorFromForm(const char* value);
 
 /** Merge route fields into the live aircraft list entry for callsign. */
 void applyRouteFieldsByCallsign(const char* callsign, const char* airline,
-                                const char* origin, const char* dest);
+                                const char* origin, const char* dest,
+                                const char* origin_iata, const char* dest_iata,
+                                const char* origin_name, const char* dest_name);
 
 }  // namespace services::adsb
