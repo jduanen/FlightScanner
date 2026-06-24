@@ -1,5 +1,6 @@
 #include "services/settings_web.h"
 
+#include <ArduinoJson.h>
 #include <WebServer.h>
 #include <WiFi.h>
 
@@ -341,10 +342,127 @@ void handleNotFound() {
   s_server->send(302, "text/plain", "");
 }
 
+void apiSendCors() {
+  s_server->sendHeader("Access-Control-Allow-Origin", "*");
+  s_server->sendHeader("Access-Control-Allow-Methods", "GET, POST");
+  s_server->sendHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+void handleApiSettingsGet() {
+  JsonDocument doc;
+  char center[48];
+  snprintf(center, sizeof(center), "%.6f, %.6f",
+           services::map_center::latitude(), services::map_center::longitude());
+  doc["radar_center"] = center;
+  doc["use_miles"] = ui::radar::distanceInMiles();
+  doc["show_cardinals"] = ui::radar::showCompassRose();
+  doc["show_sweep"] = ui::displayPrefsSweepLineEnabled();
+  doc["detail_timeout"] = static_cast<int>(ui::displayPrefsFlightDetailTimeoutMs() / 1000UL);
+  doc["bright_pct"] = hardware::displayBrightnessPercent();
+  doc["blank_timeout"] = hardware::displayBlankingTimeoutSec();
+  doc["ui_beep"] = hardware::buzzerEnabled();
+  char tone[2] = {hardware::buzzerToneLetter(), '\0'};
+  doc["beep_tone"] = tone;
+  doc["min_height"] = services::adsb::altitudeFloorFt();
+  doc["range_idx"] = ui::radar::scaleActiveIndex();
+  doc["route_server_url"] = services::route_server::url();
+
+  String json;
+  serializeJson(doc, json);
+  apiSendCors();
+  s_server->send(200, "application/json", json);
+}
+
+void handleApiSettingsPost() {
+  JsonDocument doc;
+  if (deserializeJson(doc, s_server->arg("plain"))) {
+    apiSendCors();
+    s_server->send(400, "application/json", "{\"error\":\"invalid JSON\"}");
+    return;
+  }
+
+  if (!doc["radar_center"].isNull()) {
+    services::map_center::applyRadarCenterFromForm(doc["radar_center"].as<const char*>());
+  }
+  if (!doc["use_miles"].isNull()) {
+    ui::radar::saveDistanceUnitsFromForm(doc["use_miles"].as<bool>() ? "T" : "F");
+  }
+  if (!doc["show_cardinals"].isNull()) {
+    ui::radar::saveCompassRoseFromForm(doc["show_cardinals"].as<bool>() ? "T" : "F");
+  }
+  if (!doc["show_sweep"].isNull()) {
+    ui::displayPrefsSaveSweepLineFromForm(doc["show_sweep"].as<bool>() ? "T" : "F");
+  }
+  if (!doc["detail_timeout"].isNull()) {
+    char buf[8];
+    snprintf(buf, sizeof(buf), "%d", doc["detail_timeout"].as<int>());
+    ui::displayPrefsSaveFlightDetailTimeoutFromForm(buf);
+  }
+  if (!doc["bright_pct"].isNull()) {
+    char buf[8];
+    snprintf(buf, sizeof(buf), "%d", doc["bright_pct"].as<int>());
+    hardware::displayBrightnessSaveFromForm(buf);
+    hardware::displayApplyBrightness();
+  }
+  if (!doc["blank_timeout"].isNull()) {
+    char buf[8];
+    snprintf(buf, sizeof(buf), "%d", doc["blank_timeout"].as<int>());
+    hardware::displayBlankingSaveTimeoutFromForm(buf);
+  }
+  if (!doc["ui_beep"].isNull()) {
+    hardware::saveBeepEnabledFromForm(doc["ui_beep"].as<bool>() ? "T" : "F");
+  }
+  if (!doc["beep_tone"].isNull()) {
+    hardware::saveBeepToneFromForm(doc["beep_tone"].as<const char*>());
+  }
+  if (!doc["min_height"].isNull()) {
+    char buf[12];
+    snprintf(buf, sizeof(buf), "%d", doc["min_height"].as<int>());
+    services::adsb::saveAltitudeFloorFromForm(buf);
+  }
+  if (!doc["range_idx"].isNull()) {
+    const int idx = doc["range_idx"].as<int>();
+    if (idx >= 0 && idx < static_cast<int>(ui::radar::kScaleBandCount)) {
+      ui::radar::scaleSelect(static_cast<uint8_t>(idx));
+    }
+  }
+  if (!doc["route_server_url"].isNull()) {
+    services::route_server::saveFromForm(doc["route_server_url"].as<const char*>());
+  }
+
+  handleApiSettingsGet();
+}
+
+void handleApiSettings() {
+  if (s_server->method() == HTTP_GET) {
+    handleApiSettingsGet();
+  } else if (s_server->method() == HTTP_POST) {
+    handleApiSettingsPost();
+  } else {
+    apiSendCors();
+    s_server->send(405, "application/json", "{\"error\":\"method not allowed\"}");
+  }
+}
+
+void handleApiReboot() {
+  if (s_server->method() != HTTP_POST) {
+    apiSendCors();
+    s_server->send(405, "application/json", "{\"error\":\"method not allowed\"}");
+    return;
+  }
+  apiSendCors();
+  s_server->send(200, "application/json", "{\"status\":\"rebooting\"}");
+  s_server->client().flush();
+  delay(200);
+  esp_restart();
+}
+
 void registerRoutes() {
   s_server->on("/", HTTP_GET, handleSettingsPage);
   s_server->on("/settings", HTTP_GET, handleSettingsPage);
   s_server->on("/save", HTTP_POST, handleSave);
+  s_server->on("/api/settings", handleApiSettings);
+  s_server->on("/api/reboot", handleApiReboot);
   s_server->onNotFound(handleNotFound);
 }
 
