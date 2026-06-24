@@ -9,7 +9,7 @@ namespace hardware {
 
 namespace {
 
-constexpr char kStoreNs[] = "flightscnr";
+constexpr char kStoreNs[] = "flightscanner";
 constexpr char kBrightPctKey[] = "bright_pct";
 
 constexpr uint8_t kLevels[] = {20, 40, 60, 80, 100};

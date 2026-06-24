@@ -6,12 +6,12 @@
 
 namespace config {
 
-#ifndef FLIGHTSCNR_FIRMWARE_VERSION
-#define FLIGHTSCNR_FIRMWARE_VERSION "jdn"
+#ifndef FLIGHTSCANNER_FIRMWARE_VERSION
+#define FLIGHTSCANNER_FIRMWARE_VERSION "jdn"
 #endif
 
-/** Build-time firmware version (release CI sets FLIGHTSCNR_FIRMWARE_VERSION). */
-constexpr char kFirmwareVersion[] = FLIGHTSCNR_FIRMWARE_VERSION;
+/** Build-time firmware version (release CI sets FLIGHTSCANNER_FIRMWARE_VERSION). */
+constexpr char kFirmwareVersion[] = FLIGHTSCANNER_FIRMWARE_VERSION;
 
 /** Project source repository (linked on device web UIs). */
 constexpr char kGithubRepoUrl[] =
@@ -23,9 +23,9 @@ constexpr char kPortalAuthorUrl[] = "https://github.com/jduanen/FlightScanner";
 // --- Wi-Fi portal ---
 constexpr char kPortalApName[] = "FlightScanner-AP";
 constexpr char kPortalIp[] = "4.3.2.1";
-/** mDNS host (no ".local" suffix); browser: http://flightscnr.local */
-constexpr char kPortalHostname[] = "flightscnr";
-constexpr char kPortalHostUrl[] = "flightscnr.local";
+/** mDNS host (no ".local" suffix); browser: http://flightscanner.local */
+constexpr char kPortalHostname[] = "flightscanner";
+constexpr char kPortalHostUrl[] = "flightscanner.local";
 
 /** Per-attempt STA connect wait (ms); retried kWifiConnectAttempts times. */
 constexpr unsigned long kWifiConnectAttemptMs = 15000;

@@ -37,18 +37,18 @@ I added a Sparkfun Electronics Battery Babysitter board which allows the LilyGO 
 
 ### Settings REST API
 
-All settings on the `flightscnr.local` page are also accessible via a REST API served on port 80. Unlike the HTML form, API writes take effect immediately without a reboot (brightness is applied live; route server URL takes effect on the next lookup).
+All settings on the `flightscanner.local` page are also accessible via a REST API served on port 80. Unlike the HTML form, API writes take effect immediately without a reboot (brightness is applied live; route server URL takes effect on the next lookup).
 
 #### GET /api/settings
 
 Returns all current settings as JSON.
 
 ```
-GET http://flightscnr.local/api/settings
+GET http://flightscanner.local/api/settings
 ```
 
 ```bash
-curl -X GET http://flightscnr.local/api/settings | jq '.'
+curl -X GET http://flightscanner.local/api/settings | jq '.'
 ```
 
 ```json
@@ -73,14 +73,14 @@ curl -X GET http://flightscnr.local/api/settings | jq '.'
 Updates one or more settings. Send a JSON body with only the fields you want to change. Returns the full settings object after applying changes.
 
 ```
-POST http://flightscnr.local/api/settings
+POST http://flightscanner.local/api/settings
 Content-Type: application/json
 
 {"bright_pct": 85, "blank_timeout": 120}
 ```
 
 ```bash
-curl -X POST http://flightscnr.local/api/settings -H 'Content-Type: application/json' -d '{"bright_pct": 85, "blank_timeout": 120}'
+curl -X POST http://flightscanner.local/api/settings -H 'Content-Type: application/json' -d '{"bright_pct": 85, "blank_timeout": 120}'
 
 ```
 
@@ -106,7 +106,7 @@ Invalid or out-of-range values for a field are silently ignored (the field is le
 Triggers a clean reboot. Use this after changes that require it (e.g. Wi-Fi settings).
 
 ```
-POST http://flightscnr.local/api/reboot
+POST http://flightscanner.local/api/reboot
 ```
 
 ```json

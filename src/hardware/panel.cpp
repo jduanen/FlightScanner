@@ -11,7 +11,7 @@ namespace hardware {
 
 namespace {
 
-constexpr char kStoreNs[] = "flightscnr";
+constexpr char kStoreNs[] = "flightscanner";
 constexpr char kPanelKey[] = "panel_hw";
 
 PanelType s_panel = PanelType::DxqSh8601;
@@ -78,11 +78,11 @@ void persistPanel(PanelType type) {
 }  // namespace
 
 void panelBootResolve() {
-#if defined(FLIGHTSCNR_PANEL_TFD12)
+#if defined(FLIGHTSCANNER_PANEL_TFD12)
   s_panel = PanelType::TfdCo5300;
   Serial.println("Panel: forced TFD12 / CO5300 / CST816 (build flag)");
   return;
-#elif defined(FLIGHTSCNR_PANEL_DXQ)
+#elif defined(FLIGHTSCANNER_PANEL_DXQ)
   s_panel = PanelType::DxqSh8601;
   Serial.println("Panel: forced DXQ120 / SH8601 / CHSC5816 (build flag)");
   return;

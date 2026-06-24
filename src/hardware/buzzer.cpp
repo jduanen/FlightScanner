@@ -12,7 +12,7 @@ namespace hardware {
 
 namespace {
 
-constexpr char kStoreNs[] = "flightscnr";
+constexpr char kStoreNs[] = "flightscanner";
 constexpr char kEnabledKey[] = "beep_en";
 constexpr char kToneKey[] = "beep_vol";
 

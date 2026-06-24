@@ -1,5 +1,5 @@
 /**
- * FlightScnr — WiFi setup, then radar UI on the T-Encoder Pro AMOLED display.
+ * FlightScanner — WiFi setup, then radar UI on the T-Encoder Pro AMOLED display.
  */
 
 #include <Arduino.h>

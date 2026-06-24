@@ -9,7 +9,7 @@
 namespace hardware {
 namespace {
 
-constexpr char kStoreNs[] = "flightscnr";
+constexpr char kStoreNs[] = "flightscanner";
 constexpr char kBlankTimeoutKey[] = "blank_to_s";
 constexpr uint16_t kDefaultTimeoutSec = 60;
 constexpr uint16_t kValidTimeouts[] = {0, 30, 60, 120, 300, 600};
