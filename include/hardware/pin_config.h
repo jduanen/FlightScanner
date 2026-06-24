@@ -15,6 +15,10 @@
 #define IIC_SDA 5
 #define IIC_SCL 6
 
+// Qwiic / STEMMA QT connector — XTAL_32K_N (GPIO16) = SDA, XTAL_32K_P (GPIO15) = SCL
+#define QWIIC_SDA 16
+#define QWIIC_SCL 15
+
 #define TOUCH_INT 9
 #define TOUCH_RST 8
 

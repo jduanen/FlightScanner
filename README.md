@@ -31,9 +31,9 @@ Behavior:
 - The idle timer starts when setup completes (after Wi-Fi connects and the boot splash appears).
 - Any touch, swipe, knob press, or encoder rotation resets the timer. If the display was off, the triggering input wakes the display but is otherwise discarded — no accidental navigation occurs on wake.
 - The radar sweep animation is paused while the display is off to avoid unnecessary SPI writes.
-- `hardware::displayBlankingNotifyCharging()` and `hardware::displayBlankingNotifyUncharging()` are provided as hooks for future Battery Babysitter integration (blank on charger placement, wake on removal). These are not yet called because the Battery Babysitter I2C driver has not been added.
+- `hardware::displayBlankingNotifyCharging()` and `hardware::displayBlankingNotifyUncharging()` are called by the BQ27441 driver whenever a charging-state transition is detected.
 
-I added a Sparkfun Electronics Battery Babysitter board which allows the LilyGO device to remain powered on while the battery is being charged. This battery management board has a LiPo fuel gauge function that is available over the I2C bus, and I want to add a page with information about the current state of the battery's charge.
+I added a Sparkfun Electronics Battery Babysitter board which allows the LilyGO device to remain powered on while the battery is being charged. This battery management board has a LiPo fuel gauge function available over I2C, and a Settings page (4/4) shows live battery state.
 
 ### Settings REST API
 
@@ -119,7 +119,9 @@ I have my own (unfiltered, 1080MHz and 980MHz) ADS-B receiver as well as a LAN-b
 
 ### Add support for Sparkfun Battery Babysitter
 
-The Sparkfun Battery Babysitter board has an I2C interface to it's battery management IC. By connecting this interface to the T-Encoder's 3.3V Qwiic port, I will enable a screen to show the current amount of charge in the battery. Furthermore, with this interface I can also determine when the device has been placed on a Qi charger, and when the device has been removed from the charger (and use this event to reset the screen-blanking timeout and enable the display if it was turned off). In this way, I can have the device remain active, but with the display blanked until it is picked up off of the charger (or when the screen is touched).
+The Sparkfun Battery Babysitter board's BQ27441-G1A fuel gauge is connected via the T-Encoder Pro's Qwiic port. The Qwiic connector's SDA/SCL pins are **GPIO16/GPIO15** respectively (the ESP32-S3's XTAL_32K_N/XTAL_32K_P pads, repurposed as GPIO since no 32 kHz crystal is fitted). These are on a separate I2C bus (`Wire1`) from the internal touch controller bus (`Wire`, GPIO5/GPIO6).
+
+The BQ27441 driver polls the gauge every 10 seconds and calls `displayBlankingNotifyCharging()` / `displayBlankingNotifyUncharging()` on charging-state transitions, so the display blanks when placed on the charger and wakes when removed.
 
 ## Hardware
 
@@ -160,7 +162,7 @@ The hardware that I'm using a LilyGO T-Encoder Pro with a Sparkfun Battery Babys
       - power (mW)
       - estimated remaining capacity (mAh)
     * set the battery's full-charge capacity
-  - the I2C address of this device is 0x??
+  - the I2C address of this device is 0x55
   - the LiPo fuel gauge has a programmable output, GPOUT, that can be used to signal:
     * low battery alert
     * change in state-of-charge

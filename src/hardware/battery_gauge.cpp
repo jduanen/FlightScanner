@@ -29,16 +29,16 @@ unsigned long s_last_poll_ms = 0;
 bool s_was_charging = false;
 
 bool readU16(uint8_t reg, uint16_t* out) {
-  Wire.beginTransmission(kAddr);
-  Wire.write(reg);
-  if (Wire.endTransmission(false) != 0) {
+  Wire1.beginTransmission(kAddr);
+  Wire1.write(reg);
+  if (Wire1.endTransmission(false) != 0) {
     return false;
   }
-  if (Wire.requestFrom(kAddr, static_cast<uint8_t>(2)) != 2) {
+  if (Wire1.requestFrom(kAddr, static_cast<uint8_t>(2)) != 2) {
     return false;
   }
-  const uint8_t lo = Wire.read();
-  const uint8_t hi = Wire.read();
+  const uint8_t lo = Wire1.read();
+  const uint8_t hi = Wire1.read();
   *out = static_cast<uint16_t>(lo) | (static_cast<uint16_t>(hi) << 8);
   return true;
 }
@@ -80,18 +80,10 @@ void readState() {
 }  // namespace
 
 void batteryGaugeInit() {
-  Wire.begin(IIC_SDA, IIC_SCL);
+  Wire1.begin(QWIIC_SDA, QWIIC_SCL);
 
-  Serial.println("[battery] I2C scan:");
-  for (uint8_t addr = 1; addr < 127; ++addr) {
-    Wire.beginTransmission(addr);
-    if (Wire.endTransmission() == 0) {
-      Serial.printf("[battery]   0x%02X\n", addr);
-    }
-  }
-
-  Wire.beginTransmission(kAddr);
-  if (Wire.endTransmission() != 0) {
+  Wire1.beginTransmission(kAddr);
+  if (Wire1.endTransmission() != 0) {
     Serial.println("[battery] BQ27441 not found");
     return;
   }

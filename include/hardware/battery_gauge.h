@@ -16,7 +16,7 @@ struct BatteryState {
   bool full = false;
 };
 
-/** Probe the BQ27441-G1A on the shared I2C bus. Call after panelBootResolve(). */
+/** Probe the BQ27441-G1A on the Qwiic bus (Wire1, GPIO15/16). Call after panelBootResolve(). */
 void batteryGaugeInit();
 
 /** Read gauge state; throttled to once per 10 s. Call from main loop. */
