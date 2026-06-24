@@ -70,7 +70,7 @@ void appendGithubLink(char* page, size_t len, size_t* used) {
   const int n = snprintf(
       page + *used, len - *used,
       "<p class=\"gh\"><a href=\"%s\" target=\"_blank\" rel=\"noopener\">"
-      "github.com/yashmulgaonkar/FlightScanner</a></p>",
+      "github.com/jduanen/FlightScanner</a></p>",
       config::kGithubRepoUrl);
   if (n > 0) {
     *used += static_cast<size_t>(n);
@@ -88,7 +88,7 @@ void sendRebootPage() {
            "<h1>Saved</h1><p>Rebooting&hellip;</p>"
            "<p style=\"margin-top:1.5rem;font-size:.9rem\">"
            "<a href=\"%s\" style=\"color:#6cf\" target=\"_blank\" rel=\"noopener\">"
-           "github.com/yashmulgaonkar/FlightScanner</a></p>"
+           "github.com/jduanen/FlightScanner</a></p>"
            "</body></html>",
            config::kGithubRepoUrl);
   s_server->send(200, "text/html; charset=utf-8", page);
