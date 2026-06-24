@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "config.h"
+#include "hardware/battery_gauge.h"
 #include "hardware/buzzer.h"
 #include "hardware/display.h"
 #include "hardware/display_brightness.h"
@@ -202,7 +203,7 @@ void drawMainPage(uint16_t bg, uint16_t fg, uint16_t label_fg, uint16_t hint_fg)
   displayFontApply(tft, displayFontTitle());
   tft.setTextDatum(TextDatum::TopCenter);
   tft.setTextColor(fg, bg);
-  tft.drawString("Settings 1/3", kCenterX, y);
+  tft.drawString("Settings 1/4", kCenterX, y);
   y += title_h + kTitleGap;
 
   for (const InfoLine& line : main_lines) {
@@ -281,7 +282,7 @@ void drawDisplayPage(uint16_t bg, uint16_t fg, uint16_t label_fg, uint16_t hint_
   displayFontApply(tft, displayFontTitle());
   tft.setTextDatum(TextDatum::TopCenter);
   tft.setTextColor(fg, bg);
-  tft.drawString("Settings 2/3", kCenterX, y);
+  tft.drawString("Settings 2/4", kCenterX, y);
   y += title_h + kTitleGap;
 
   for (const InfoLine& line : option_lines) {
@@ -308,6 +309,7 @@ void drawColorsPage(uint16_t bg, uint16_t fg, uint16_t label_fg, uint16_t hint_f
   };
   const InfoLine hint_lines[] = {
       {"Turn knob: change color", displayFontDetail(), hint_fg},
+      {"Swipe left — Battery", displayFontDetail(), hint_fg},
       {"Swipe right — Display", displayFontDetail(), hint_fg},
   };
   const int options_h = measureBlockHeight(option_lines, sizeof(option_lines) / sizeof(option_lines[0]));
@@ -322,7 +324,7 @@ void drawColorsPage(uint16_t bg, uint16_t fg, uint16_t label_fg, uint16_t hint_f
   displayFontApply(tft, displayFontTitle());
   tft.setTextDatum(TextDatum::TopCenter);
   tft.setTextColor(fg, bg);
-  tft.drawString("Settings 3/3", kCenterX, y);
+  tft.drawString("Settings 3/4", kCenterX, y);
   y += title_h + kTitleGap;
 
   for (const InfoLine& line : option_lines) {
@@ -331,6 +333,106 @@ void drawColorsPage(uint16_t bg, uint16_t fg, uint16_t label_fg, uint16_t hint_f
 
   y += kHintsTopGap;
 
+  for (const InfoLine& line : hint_lines) {
+    drawCenterLine(line.text, &y, line.style, line.color, bg);
+  }
+}
+
+void drawBatteryPage(uint16_t bg, uint16_t fg, uint16_t label_fg, uint16_t hint_fg) {
+  const hardware::BatteryState& st = hardware::batteryGaugeState();
+  const int title_h = displayFontHeight(tft, displayFontTitle());
+
+  const InfoLine hint_lines[] = {
+      {"Swipe right — Colors", displayFontDetail(), hint_fg},
+  };
+  const int hints_h = measureBlockHeight(hint_lines, sizeof(hint_lines) / sizeof(hint_lines[0]));
+
+  if (!st.present) {
+    const InfoLine option_lines[] = {
+        {"No gauge detected", displayFontBody(), label_fg},
+    };
+    const int options_h =
+        measureBlockHeight(option_lines, sizeof(option_lines) / sizeof(option_lines[0]));
+    const int block_h = title_h + kTitleGap + options_h + kHintsTopGap + hints_h + kFooterGap;
+    int y = kCenterY - block_h / 2;
+    if (y < kBezelInsetPx) {
+      y = kBezelInsetPx;
+    }
+    displayFontApply(tft, displayFontTitle());
+    tft.setTextDatum(TextDatum::TopCenter);
+    tft.setTextColor(fg, bg);
+    tft.drawString("Settings 4/4", kCenterX, y);
+    y += title_h + kTitleGap;
+    for (const InfoLine& line : option_lines) {
+      drawCenterLine(line.text, &y, line.style, line.color, bg);
+    }
+    y += kHintsTopGap;
+    for (const InfoLine& line : hint_lines) {
+      drawCenterLine(line.text, &y, line.style, line.color, bg);
+    }
+    return;
+  }
+
+  char charge_line[28];
+  char current_line[28];
+  char capacity_line[28];
+  char time_line[28];
+
+  snprintf(charge_line, sizeof(charge_line), "%u%% \xe2\x80\x94 %u mV", st.soc, st.voltage_mv);
+
+  if (st.full) {
+    strncpy(current_line, "Full", sizeof(current_line) - 1);
+    current_line[sizeof(current_line) - 1] = '\0';
+  } else {
+    const int abs_ma = st.current_ma >= 0 ? static_cast<int>(st.current_ma)
+                                           : -static_cast<int>(st.current_ma);
+    snprintf(current_line, sizeof(current_line), "%s %d mA",
+             st.charging ? "Charging" : "Using", abs_ma);
+  }
+
+  if (st.remain_mah > 0 || st.full_mah > 0) {
+    snprintf(capacity_line, sizeof(capacity_line), "%u / %u mAh", st.remain_mah, st.full_mah);
+  } else {
+    strncpy(capacity_line, "\xe2\x80\x94", sizeof(capacity_line) - 1);
+    capacity_line[sizeof(capacity_line) - 1] = '\0';
+  }
+
+  if (st.time_to_empty_min > 0) {
+    if (st.time_to_empty_min >= 60) {
+      snprintf(time_line, sizeof(time_line), "~%dh %dm remaining",
+               st.time_to_empty_min / 60, st.time_to_empty_min % 60);
+    } else {
+      snprintf(time_line, sizeof(time_line), "~%d min remaining", st.time_to_empty_min);
+    }
+  } else {
+    strncpy(time_line, "\xe2\x80\x94", sizeof(time_line) - 1);
+    time_line[sizeof(time_line) - 1] = '\0';
+  }
+
+  const InfoLine option_lines[] = {
+      {charge_line,   displayFontBody(),   fg},
+      {current_line,  displayFontDetail(), label_fg},
+      {capacity_line, displayFontDetail(), label_fg},
+      {time_line,     displayFontDetail(), label_fg},
+  };
+  const int options_h =
+      measureBlockHeight(option_lines, sizeof(option_lines) / sizeof(option_lines[0]));
+  const int block_h = title_h + kTitleGap + options_h + kHintsTopGap + hints_h + kFooterGap;
+
+  int y = kCenterY - block_h / 2;
+  if (y < kBezelInsetPx) {
+    y = kBezelInsetPx;
+  }
+
+  displayFontApply(tft, displayFontTitle());
+  tft.setTextDatum(TextDatum::TopCenter);
+  tft.setTextColor(fg, bg);
+  tft.drawString("Settings 4/4", kCenterX, y);
+  y += title_h + kTitleGap;
+  for (const InfoLine& line : option_lines) {
+    drawCenterLine(line.text, &y, line.style, line.color, bg);
+  }
+  y += kHintsTopGap;
   for (const InfoLine& line : hint_lines) {
     drawCenterLine(line.text, &y, line.style, line.color, bg);
   }
@@ -388,8 +490,10 @@ void infoScreenDraw() {
     drawMainPage(bg, fg, label_fg, hint_fg);
   } else if (s_page == ui::InfoSettingsPage::Display) {
     drawDisplayPage(bg, fg, label_fg, hint_fg);
-  } else {
+  } else if (s_page == ui::InfoSettingsPage::Colors) {
     drawColorsPage(bg, fg, label_fg, hint_fg);
+  } else {
+    drawBatteryPage(bg, fg, label_fg, hint_fg);
   }
 
   tft.setTextDatum(TextDatum::TopLeft);

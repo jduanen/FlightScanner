@@ -10,6 +10,7 @@
 #include <freertos/task.h>
 
 #include "config.h"
+#include "hardware/battery_gauge.h"
 #include "hardware/buzzer.h"
 #include "hardware/display.h"
 #include "hardware/display_blanking.h"
@@ -236,7 +237,7 @@ void openSettingsFromRadar() {
   g_screen = AppScreen::Settings;
   noteSecondaryActivity();
   showSettings();
-  Serial.println("Screen: settings (1/3)");
+  Serial.println("Screen: settings (1/4)");
 }
 
 void openClockFromRadar() {
@@ -337,12 +338,22 @@ void handleNavigation() {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Display);
     ui::infoScreenResetDisplayFocus();
     showSettings();
-    Serial.println("Screen: settings (2/3)");
+    Serial.println("Screen: settings (2/4)");
   } else if (swipe == SwipeLeft && g_screen == AppScreen::Settings &&
              ui::infoScreenPage() == ui::InfoSettingsPage::Display) {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Colors);
     showSettings();
-    Serial.println("Screen: settings (3/3)");
+    Serial.println("Screen: settings (3/4)");
+  } else if (swipe == SwipeLeft && g_screen == AppScreen::Settings &&
+             ui::infoScreenPage() == ui::InfoSettingsPage::Colors) {
+    ui::infoScreenSetPage(ui::InfoSettingsPage::Battery);
+    showSettings();
+    Serial.println("Screen: settings (4/4)");
+  } else if (swipe == SwipeRight && g_screen == AppScreen::Settings &&
+             ui::infoScreenPage() == ui::InfoSettingsPage::Battery) {
+    ui::infoScreenSetPage(ui::InfoSettingsPage::Colors);
+    showSettings();
+    Serial.println("Screen: settings (3/4)");
   } else if (swipe == SwipeRight && g_screen == AppScreen::FlightDetail) {
     returnToRadar(false);
   } else if (swipe == SwipeRight && g_screen == AppScreen::Settings &&
@@ -350,12 +361,12 @@ void handleNavigation() {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Display);
     ui::infoScreenResetDisplayFocus();
     showSettings();
-    Serial.println("Screen: settings (2/3)");
+    Serial.println("Screen: settings (2/4)");
   } else if (swipe == SwipeRight && g_screen == AppScreen::Settings &&
              ui::infoScreenPage() == ui::InfoSettingsPage::Display) {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Main);
     showSettings();
-    Serial.println("Screen: settings (1/3)");
+    Serial.println("Screen: settings (1/4)");
   } else if (swipe == SwipeRight && g_screen == AppScreen::Settings) {
     returnToRadar(false);
   }
@@ -573,6 +584,7 @@ void setup() {
   Serial.println("FlightScanner (T-Encoder Pro)");
 
   hardware::panelBootResolve();
+  hardware::batteryGaugeInit();
   displayInit();
   hardware::displayBlankingBootLoad();
   inputInit();
@@ -602,6 +614,7 @@ void setup() {
 void loop() {
   const unsigned long loop_start = millis();
   hardware::buzzerPoll();
+  hardware::batteryGaugePoll();
   hardware::displayBlankingTick(loop_start);
   tickBootDetailsSplash();
   tickSecondaryScreenTimeout();
