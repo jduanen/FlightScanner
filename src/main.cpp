@@ -518,8 +518,7 @@ void tickAdsbFetch() {
   }
 
   if (services::adsb::fetchReady()) {
-    // Route APIs run only via onFlightDetailSelected(), not on ADS-B poll.
-    services::adsb::fetchProcessReady(false);
+    services::adsb::fetchProcessReady();
     if (g_screen == AppScreen::Radar && g_radar_visible) {
       ui::radarDisplayRefreshAircraft();
     } else if (g_screen == AppScreen::FlightDetail) {
