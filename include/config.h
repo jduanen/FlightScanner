@@ -7,7 +7,7 @@
 namespace config {
 
 #ifndef FLIGHTSCNR_FIRMWARE_VERSION
-#define FLIGHTSCNR_FIRMWARE_VERSION "dev"
+#define FLIGHTSCNR_FIRMWARE_VERSION "jdn"
 #endif
 
 /** Build-time firmware version (release CI sets FLIGHTSCNR_FIRMWARE_VERSION). */
@@ -15,13 +15,13 @@ constexpr char kFirmwareVersion[] = FLIGHTSCNR_FIRMWARE_VERSION;
 
 /** Project source repository (linked on device web UIs). */
 constexpr char kGithubRepoUrl[] =
-    "https://github.com/yashmulgaonkar/FlightScnr";
+    "https://github.com/jduanen/FlightScanner";
 
 /** Captive portal footer link (placeholder until author page is ready). */
-constexpr char kPortalAuthorUrl[] = "https://github.com/yashmulgaonkar/FlightScnr";
+constexpr char kPortalAuthorUrl[] = "https://github.com/jduanen/FlightScanner";
 
 // --- Wi-Fi portal ---
-constexpr char kPortalApName[] = "FlightScnr-AP";
+constexpr char kPortalApName[] = "FlightScanner-AP";
 constexpr char kPortalIp[] = "4.3.2.1";
 /** mDNS host (no ".local" suffix); browser: http://flightscnr.local */
 constexpr char kPortalHostname[] = "flightscnr";
