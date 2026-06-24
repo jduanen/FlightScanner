@@ -134,9 +134,9 @@ The hardware that I'm using a LilyGO T-Encoder Pro with a Sparkfun Battery Babys
   - WiFi and BTLE5
   - 2x Qwiic 4x pin
   - USB-C
-  - 1.2" 390x390 AMOLED Display (SH8601A)
+  - 1.2" 390x390 AMOLED Display (CO5300)
     * QSPI interface
-  - CHSC5816 Touchscreen Controller and Rotary Encoder
+  - CST816 Touchscreen Controller and Rotary Encoder
   - Buzzer
   - 5V @ 500mA
 
@@ -149,6 +149,21 @@ The hardware that I'm using a LilyGO T-Encoder Pro with a Sparkfun Battery Babys
 * Key Features
   - allows charging of battery and suppling the output load with 5V
   - ????
+  - the board includes a BQ27441-G1A LiPo fuel gauge
+
+* BQ27441-G1A LiPo Fuel Gauge
+  - the LiPo fuel gauge has a (3.3V and 5V tolerant) I2C interface that is used to:
+    * measure a battery's:
+      - voltage (mV)
+      - state-of-charge (%)
+      - current (mA)
+      - power (mW)
+      - estimated remaining capacity (mAh)
+    * set the battery's full-charge capacity
+  - the I2C address of this device is 0x??
+  - the LiPo fuel gauge has a programmable output, GPOUT, that can be used to signal:
+    * low battery alert
+    * change in state-of-charge
 
 **image here**
 
