@@ -657,6 +657,11 @@ bool detailEnrichmentPending() {
   if (s_detail_selection_callsign[0] == '\0' || s_detail_ready) {
     return false;
   }
+  if (s_detail_debounce_pending &&
+      strcmp(s_detail_debounce_callsign, s_detail_selection_callsign) == 0 &&
+      isIcaoRadioCallsign(s_detail_debounce_callsign)) {
+    return true;
+  }
   if ((s_detail_busy || s_detail_requested) &&
       strcmp(s_detail_worker_callsign, s_detail_selection_callsign) == 0) {
     return true;
