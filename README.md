@@ -101,6 +101,44 @@ curl -X POST http://flightscanner.local/api/settings -H 'Content-Type: applicati
 
 Invalid or out-of-range values for a field are silently ignored (the field is left unchanged).
 
+#### GET /api/battery
+
+Returns the current state of the BQ27441-G1A fuel gauge. If the gauge is not detected, only `"present": false` is returned.
+
+```
+GET http://flightscanner.local/api/battery
+```
+
+```bash
+curl -X GET http://flightscanner.local/api/battery | jq '.'
+```
+
+```json
+{
+  "present": true,
+  "soc": 85,
+  "voltage_mv": 3987,
+  "current_ma": 450,
+  "remain_mah": 1020,
+  "full_mah": 1200,
+  "time_to_empty_min": 0,
+  "charging": true,
+  "full": false
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `present` | bool | `false` if gauge not detected; remaining fields absent |
+| `soc` | int | State of charge, 0–100% |
+| `voltage_mv` | int | Battery voltage in mV |
+| `current_ma` | int | Average current in mA; positive = charging, negative = discharging |
+| `remain_mah` | int | Remaining capacity in mAh |
+| `full_mah` | int | Full charge capacity in mAh |
+| `time_to_empty_min` | int | Estimated minutes to empty (0 when charging or unknown) |
+| `charging` | bool | `true` while charging current is positive |
+| `full` | bool | `true` when FC flag is set |
+
 #### POST /api/reboot
 
 Triggers a clean reboot. Use this after changes that require it (e.g. Wi-Fi settings).

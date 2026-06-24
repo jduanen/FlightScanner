@@ -14,6 +14,7 @@
 #endif
 
 #include "config.h"
+#include "hardware/battery_gauge.h"
 #include "hardware/buzzer.h"
 #include "hardware/display_blanking.h"
 #include "hardware/display_brightness.h"
@@ -298,6 +299,39 @@ void handleSettingsPage() {
     used += static_cast<size_t>(svc_n);
   }
 
+  {
+    const hardware::BatteryState& bat = hardware::batteryGaugeState();
+    int bat_n;
+    if (!bat.present) {
+      bat_n = snprintf(
+          page + used, kSettingsPageCap - used,
+          "<h2 style=\"font-size:1rem;margin:1.25rem 0 .35rem\">Battery</h2>"
+          "<p style=\"color:#9ab;font-size:.9rem\">No gauge detected.</p>");
+    } else {
+      const char* status = bat.full ? "full" : (bat.charging ? "charging" : "discharging");
+      char time_buf[32] = "";
+      if (!bat.charging && !bat.full && bat.time_to_empty_min > 0) {
+        snprintf(time_buf, sizeof(time_buf), "<br>~%uh %02um to empty",
+                 bat.time_to_empty_min / 60u, bat.time_to_empty_min % 60u);
+      }
+      bat_n = snprintf(
+          page + used, kSettingsPageCap - used,
+          "<h2 style=\"font-size:1rem;margin:1.25rem 0 .35rem\">Battery</h2>"
+          "<p style=\"background:#222;padding:.75rem;border-radius:6px;"
+          "font-family:monospace;font-size:.9rem;line-height:1.7\">"
+          "%u%%&ensp;&bull;&ensp;%u mV<br>"
+          "%+d mA (%s)<br>"
+          "%u / %u mAh%s"
+          "</p>",
+          bat.soc, bat.voltage_mv,
+          static_cast<int>(bat.current_ma), status,
+          bat.remain_mah, bat.full_mah, time_buf);
+    }
+    if (bat_n > 0) {
+      used += static_cast<size_t>(bat_n);
+    }
+  }
+
   const int tail_n = snprintf(page + used, kSettingsPageCap - used, "%s", kPageTail);
   if (tail_n > 0) {
     used += static_cast<size_t>(tail_n);
@@ -444,6 +478,31 @@ void handleApiSettings() {
   }
 }
 
+void handleApiBattery() {
+  if (s_server->method() != HTTP_GET) {
+    apiSendCors();
+    s_server->send(405, "application/json", "{\"error\":\"method not allowed\"}");
+    return;
+  }
+  const hardware::BatteryState& bat = hardware::batteryGaugeState();
+  JsonDocument doc;
+  doc["present"] = bat.present;
+  if (bat.present) {
+    doc["soc"] = bat.soc;
+    doc["voltage_mv"] = bat.voltage_mv;
+    doc["current_ma"] = static_cast<int>(bat.current_ma);
+    doc["remain_mah"] = bat.remain_mah;
+    doc["full_mah"] = bat.full_mah;
+    doc["time_to_empty_min"] = bat.time_to_empty_min;
+    doc["charging"] = bat.charging;
+    doc["full"] = bat.full;
+  }
+  String json;
+  serializeJson(doc, json);
+  apiSendCors();
+  s_server->send(200, "application/json", json);
+}
+
 void handleApiReboot() {
   if (s_server->method() != HTTP_POST) {
     apiSendCors();
@@ -462,6 +521,7 @@ void registerRoutes() {
   s_server->on("/settings", HTTP_GET, handleSettingsPage);
   s_server->on("/save", HTTP_POST, handleSave);
   s_server->on("/api/settings", handleApiSettings);
+  s_server->on("/api/battery", HTTP_GET, handleApiBattery);
   s_server->on("/api/reboot", handleApiReboot);
   s_server->onNotFound(handleNotFound);
 }
