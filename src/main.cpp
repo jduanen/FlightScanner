@@ -12,6 +12,7 @@
 #include "config.h"
 #include "hardware/buzzer.h"
 #include "hardware/display.h"
+#include "hardware/display_blanking.h"
 #include "hardware/input.h"
 #include "hardware/panel.h"
 #include "services/adsb_client.h"
@@ -415,6 +416,16 @@ void tickClockDisplay() {
 void handleInput() {
   inputPoll();
   inputPollLongPress();
+
+  if (inputAnyPending()) {
+    const bool was_asleep = !hardware::displayIsAwake();
+    hardware::displayBlankingNotifyActivity(millis());
+    if (was_asleep) {
+      inputDiscardPendingInteractions();
+      return;
+    }
+  }
+
   handleNavigation();
 
   if (g_screen == AppScreen::Radar) {
@@ -495,7 +506,7 @@ void handleInput() {
 }
 
 void tickRadarAnimation() {
-  if (g_screen != AppScreen::Radar || !g_radar_visible) {
+  if (g_screen != AppScreen::Radar || !g_radar_visible || !hardware::displayIsAwake()) {
     return;
   }
 
@@ -563,6 +574,7 @@ void setup() {
 
   hardware::panelBootResolve();
   displayInit();
+  hardware::displayBlankingBootLoad();
   inputInit();
   hardware::buzzerInit();
   hardware::buzzerBootLoad();
@@ -583,11 +595,14 @@ void setup() {
     Serial.println("Screen: details (boot splash)");
     logDiagLine("boot");
   }
+
+  hardware::displayBlankingNotifyActivity(millis());
 }
 
 void loop() {
   const unsigned long loop_start = millis();
   hardware::buzzerPoll();
+  hardware::displayBlankingTick(loop_start);
   tickBootDetailsSplash();
   tickSecondaryScreenTimeout();
   tickClockDisplay();

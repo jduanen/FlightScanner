@@ -361,6 +361,14 @@ void inputDiscardPendingInteractions() {
   portEXIT_CRITICAL(&s_input_mux);
 }
 
+bool inputAnyPending() {
+  portENTER_CRITICAL(&s_input_mux);
+  const bool any = s_encoder_step_pending || s_knob_tap_pending || s_knob_press_pending ||
+                   (s_tap_x >= 0) || (s_swipe_pending != SwipeNone);
+  portEXIT_CRITICAL(&s_input_mux);
+  return any;
+}
+
 void inputPollLongPress() {
   if (digitalRead(config::kKnobKeyPin) == LOW) {
     portENTER_CRITICAL(&s_input_mux);

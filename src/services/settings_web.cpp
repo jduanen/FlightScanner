@@ -14,6 +14,7 @@
 
 #include "config.h"
 #include "hardware/buzzer.h"
+#include "hardware/display_blanking.h"
 #include "hardware/display_brightness.h"
 #include "services/adsb_client.h"
 #include "services/map_center.h"
@@ -216,6 +217,28 @@ void handleSettingsPage() {
     used += static_cast<size_t>(bright_n);
   }
 
+  const uint16_t blank_to = hardware::displayBlankingTimeoutSec();
+  const int blank_n = snprintf(
+      page + used, kSettingsPageCap - used,
+      "<label for=\"blank_timeout\">Screen blanking</label>"
+      "<select id=\"blank_timeout\" name=\"blank_timeout\">"
+      "<option value=\"0\"%s>Never</option>"
+      "<option value=\"30\"%s>30 seconds</option>"
+      "<option value=\"60\"%s>1 minute</option>"
+      "<option value=\"120\"%s>2 minutes</option>"
+      "<option value=\"300\"%s>5 minutes</option>"
+      "<option value=\"600\"%s>10 minutes</option>"
+      "</select>",
+      blank_to == 0 ? " selected" : "",
+      blank_to == 30 ? " selected" : "",
+      blank_to == 60 ? " selected" : "",
+      blank_to == 120 ? " selected" : "",
+      blank_to == 300 ? " selected" : "",
+      blank_to == 600 ? " selected" : "");
+  if (blank_n > 0) {
+    used += static_cast<size_t>(blank_n);
+  }
+
   const int beep_n = snprintf(
       page + used, kSettingsPageCap - used,
       "<div class=\"chk\"><input id=\"ui_beep\" name=\"ui_beep\" type=\"checkbox\" "
@@ -297,7 +320,8 @@ void handleSave() {
       s_server->arg("route_server_url").c_str(),
       s_server->arg("ui_beep").c_str(),
       s_server->arg("beep_tone").c_str(), s_server->arg("bright_pct").c_str(),
-      s_server->arg("show_sweep").c_str(), s_server->arg("detail_timeout").c_str());
+      s_server->arg("show_sweep").c_str(), s_server->arg("detail_timeout").c_str(),
+      s_server->arg("blank_timeout").c_str());
 
   Serial.printf("Settings web save (lat/lon %s)\n", loc_ok ? "ok" : "invalid");
 

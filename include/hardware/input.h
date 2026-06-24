@@ -41,3 +41,6 @@ void inputPollLongPress();
 
 /** Drop queued knob/encoder/touch events (e.g. after idle timeout to radar). */
 void inputDiscardPendingInteractions();
+
+/** True if any input event is queued (does not consume). */
+bool inputAnyPending();
