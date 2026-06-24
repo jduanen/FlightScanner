@@ -653,6 +653,21 @@ void cancelDetailEnrichment() { cancelDetailEnrichmentImpl(); }
 
 bool detailEnrichmentReady() { return s_detail_ready; }
 
+bool detailEnrichmentPending() {
+  if (s_detail_selection_callsign[0] == '\0' || s_detail_ready) {
+    return false;
+  }
+  if ((s_detail_busy || s_detail_requested) &&
+      strcmp(s_detail_worker_callsign, s_detail_selection_callsign) == 0) {
+    return true;
+  }
+  if (s_detail_has_pending &&
+      strcmp(s_detail_pending_callsign, s_detail_selection_callsign) == 0) {
+    return true;
+  }
+  return false;
+}
+
 bool detailEnrichmentConsume() { return detailEnrichmentConsumeImpl(); }
 
 }  // namespace services::route

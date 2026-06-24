@@ -36,6 +36,9 @@ void cancelDetailEnrichment();
 /** True when a background detail enrichment finished. */
 bool detailEnrichmentReady();
 
+/** True while an HTTP route lookup is actively running or queued for the current detail selection. */
+bool detailEnrichmentPending();
+
 /** Apply enrichment result to the aircraft list; returns true if UI should refresh. */
 bool detailEnrichmentConsume();
 
