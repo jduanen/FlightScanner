@@ -23,6 +23,7 @@ Thumbs.db
 
 #### Added by JDN
 
-Arduino_DriveBus
-Arduino_GFX-1.3.7
-SensorLib-0.1.4
+Arduino_DriveBus/
+Arduino_GFX-1.3.7/
+SensorLib-0.1.4/
+.vscode/
