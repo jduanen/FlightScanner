@@ -560,7 +560,7 @@ void setup() {
   delay(500);
   Serial.println();
   Serial.printf("[diag] boot reset=%s fw=%s\n", resetReasonName(), config::kFirmwareVersion);
-  Serial.println("FlightScnr (T-Encoder Pro)");
+  Serial.println("FlightScanner (T-Encoder Pro)");
 
   hardware::panelBootResolve();
   displayInit();
