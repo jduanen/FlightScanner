@@ -11,7 +11,6 @@
 #include "hardware/display_font.h"
 #include "services/adsb_client.h"
 #include "services/aircraft_type_lookup.h"
-#include "services/route_lookup.h"
 #include "data/icao_types_lookup.h"
 #include "geo/flat_earth.h"
 #include "services/map_center.h"
@@ -346,8 +345,7 @@ void drawRouteLabels(const char* origin, const char* dest, int* y, uint16_t fg, 
 
   if ((origin == nullptr || origin[0] == '\0') &&
       (dest == nullptr || dest[0] == '\0')) {
-    const char* label = services::route::detailEnrichmentPending() ? "…" : "Route unknown";
-    drawCenterLine(label, y, style, fg, bg);
+    drawCenterLine("Route unknown", y, style, fg, bg);
     return;
   }
 
@@ -452,8 +450,7 @@ void populateFlightDetailStrings(const services::adsb::Aircraft& ac,
     strncpy(out->airline, ac.airline, sizeof(out->airline) - 1);
     out->airline[sizeof(out->airline) - 1] = '\0';
   } else {
-    const char* label = services::route::detailEnrichmentPending() ? "…" : "Airline unknown";
-    strncpy(out->airline, label, sizeof(out->airline) - 1);
+    strncpy(out->airline, "Airline unknown", sizeof(out->airline) - 1);
     out->airline[sizeof(out->airline) - 1] = '\0';
   }
 
