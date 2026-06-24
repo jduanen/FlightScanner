@@ -2,7 +2,7 @@
 
 **WIP**
 
-> This is a modification of the work in https://github.com/yashmulgaonkar/FlightScnr
+> This is a modification of the work in https://github.com/yashmulgaonkar/FlightScnr .
 > Go there for all information about the original project.
 
 Buy him a coffee:
