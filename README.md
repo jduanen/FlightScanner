@@ -2,10 +2,9 @@
 
 **WIP**
 
-> This is a modification of the work in https://github.com/yashmulgaonkar/FlightScnr .
-> Go there for all information about the original project.
-
-Buy him a coffee:
+> This is a modification of the work in https://github.com/yashmulgaonkar/FlightScnr.
+> 
+> Go there for all information about the original project and buy him a coffee:
 <p align="center">
   <a href="https://buymeacoffee.com/yashmulgaonkar" target="_blank">
     <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 35px;">
@@ -23,6 +22,16 @@ One of the bigger changes to the project is to make the device battery-powered s
 I want the device to stay powered on at all times so that it will provide instant information. I also want the battery and display to last as long as possible, so I want to implement a screen blanking function that triggers after some period of time (or whenever the device is placed on a wireless charger). Whenever the display is blanked, tapping the touchscreen (or removing it from the charger) with result in the display being instantly turned back on.
 
 I added a screen-blanking function that turns the display on whenever the screen is touched (or the device is removed from the charger) and starts a timer that is reset every time the device is touched again. When this timer expires, the display is turned off. The display is turned on at boot time, when the screen is touched, or when the device is removed from the charging pad. The display remains on until a given time interval after the last time it was touched.
+
+#### Screen Blanking Implementation
+
+The blanking timeout is configurable via the settings web page ("Screen blanking" dropdown). Available options are Never, 30 seconds, 1 minute, 2 minutes, 5 minutes, and 10 minutes. The default is 1 minute. The setting is stored in NVS under the key `blank_to_s` and survives reboots.
+
+Behavior:
+- The idle timer starts when setup completes (after Wi-Fi connects and the boot splash appears).
+- Any touch, swipe, knob press, or encoder rotation resets the timer. If the display was off, the triggering input wakes the display but is otherwise discarded — no accidental navigation occurs on wake.
+- The radar sweep animation is paused while the display is off to avoid unnecessary SPI writes.
+- `hardware::displayBlankingNotifyCharging()` and `hardware::displayBlankingNotifyUncharging()` are provided as hooks for future Battery Babysitter integration (blank on charger placement, wake on removal). These are not yet called because the Battery Babysitter I2C driver has not been added.
 
 I added a Sparkfun Electronics Battery Babysitter board which allows the LilyGO device to remain powered on while the battery is being charged. This battery management board has a LiPo fuel gauge function that is available over the I2C bus, and I want to add a page with information about the current state of the battery's charge.
 
