@@ -41,7 +41,7 @@ void buildPortalCustomHead() {
       "<script>document.addEventListener('DOMContentLoaded',function(){var "
       "w=document.querySelector('.wrap');if(!w)return;var p=document.createElement('p');"
       "p.className='fs-ft';p.innerHTML='<a href=\"%s\" target=\"_blank\" "
-      "rel=\"noopener\">FlightScnr by Yash Mulgaonkar</a>';w.appendChild(p);});"
+      "rel=\"noopener\">FlightScanner</a>';w.appendChild(p);});"
       "</script>",
       config::kPortalAuthorUrl);
 }
@@ -182,7 +182,7 @@ void onConfigPortalApStarted(WiFiManager*) {
 }
 
 void configureWifiManager(WiFiManager& wm) {
-  wm.setTitle("FlightScnr");
+  wm.setTitle("FlightScanner");
   wm.setDarkMode(true);
   buildPortalCustomHead();
   wm.setCustomHeadElement(s_portal_custom_head);

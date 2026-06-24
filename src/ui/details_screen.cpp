@@ -108,8 +108,7 @@ void detailsScreenDraw(bool boot_splash) {
       {version_line, displayFontBody(), fg},
   };
   const InfoLine author_lines[] = {
-      {"FlightScnr by", displayFontBody(), label_fg},
-      {"Yash Mulgaonkar", displayFontBody(), label_fg},
+      {"FlightScanner", displayFontBody(), label_fg},
   };
   const InfoLine hint_lines[] = {
       {"Swipe down — Radar", displayFontDetail(), hint_fg},
