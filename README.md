@@ -47,6 +47,10 @@ Returns all current settings as JSON.
 GET http://flightscnr.local/api/settings
 ```
 
+```bash
+curl -X GET http://flightscnr.local/api/settings | jq '.'
+```
+
 ```json
 {
   "radar_center": "37.619770, -122.372270",
@@ -72,7 +76,12 @@ Updates one or more settings. Send a JSON body with only the fields you want to 
 POST http://flightscnr.local/api/settings
 Content-Type: application/json
 
-{"bright_pct": 60, "blank_timeout": 120}
+{"bright_pct": 85, "blank_timeout": 120}
+```
+
+```bash
+curl -X POST http://flightscnr.local/api/settings -H 'Content-Type: application/json' -d '{"bright_pct": 85, "blank_timeout": 120}'
+
 ```
 
 | Field | Type | Values |
