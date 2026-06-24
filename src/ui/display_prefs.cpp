@@ -7,7 +7,7 @@
 namespace ui {
 namespace {
 
-constexpr char kStoreNs[] = "flightscnr";
+constexpr char kStoreNs[] = "flightscanner";
 constexpr char kDetailTimeoutKey[] = "detail_to";
 constexpr char kSweepLineKey[] = "sweep_en";
 

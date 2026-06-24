@@ -37,7 +37,7 @@ const char kPageHead[] = R"HTML(<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FlightScnr Settings</title>
+<title>FlightScanner Settings</title>
 <style>
 body{font-family:system-ui,sans-serif;max-width:28rem;margin:1.5rem auto;padding:0 1rem;
 background:#000;color:#e8f0ff;}
@@ -54,7 +54,7 @@ border:none;border-radius:8px;background:#1a9c3c;color:#fff;cursor:pointer;}
 .gh{margin:.35rem 0 1rem;font-size:.85rem;text-align:center;}
 .gh a{color:#6cf;}
 </style></head><body>
-<h1>FlightScnr</h1>
+<h1>FlightScanner</h1>
 <p>Changes are saved to flash. The device reboots after you tap <strong>Save &amp; reboot</strong>.</p>
 <form method="POST" action="/save">
 )HTML";
@@ -70,7 +70,7 @@ void appendGithubLink(char* page, size_t len, size_t* used) {
   const int n = snprintf(
       page + *used, len - *used,
       "<p class=\"gh\"><a href=\"%s\" target=\"_blank\" rel=\"noopener\">"
-      "github.com/yashmulgaonkar/FlightScnr</a></p>",
+      "github.com/yashmulgaonkar/FlightScanner</a></p>",
       config::kGithubRepoUrl);
   if (n > 0) {
     *used += static_cast<size_t>(n);
@@ -88,7 +88,7 @@ void sendRebootPage() {
            "<h1>Saved</h1><p>Rebooting&hellip;</p>"
            "<p style=\"margin-top:1.5rem;font-size:.9rem\">"
            "<a href=\"%s\" style=\"color:#6cf\" target=\"_blank\" rel=\"noopener\">"
-           "github.com/yashmulgaonkar/FlightScnr</a></p>"
+           "github.com/yashmulgaonkar/FlightScanner</a></p>"
            "</body></html>",
            config::kGithubRepoUrl);
   s_server->send(200, "text/html; charset=utf-8", page);

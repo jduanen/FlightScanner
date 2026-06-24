@@ -105,7 +105,7 @@ void logAircraftToSerial(const Aircraft* planes, size_t count, double center_lat
   Serial.printf("[adsb] %u aircraft\n", static_cast<unsigned>(count));
 }
 
-constexpr char kPrefsNamespace[] = "flightscnr";
+constexpr char kPrefsNamespace[] = "flightscanner";
 constexpr char kPrefsAltFloorKey[] = "alt_floor_ft";
 constexpr char kLegacyAltFloorKey[] = "minAltFt";
 

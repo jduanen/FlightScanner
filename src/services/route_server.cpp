@@ -8,7 +8,7 @@ namespace services::route_server {
 
 namespace {
 
-constexpr char kNs[] = "flightscnr";
+constexpr char kNs[] = "flightscanner";
 constexpr char kUrlKey[] = "rs_url";
 
 char s_url[kMaxUrlLen + 1] = "";

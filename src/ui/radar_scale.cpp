@@ -11,7 +11,7 @@ namespace ui::radar {
 
 namespace {
 
-constexpr char kStoreNs[] = "flightscnr";
+constexpr char kStoreNs[] = "flightscanner";
 constexpr char kScaleSlotKey[] = "scale_slot";
 constexpr char kDistMiKey[] = "dist_mi";
 constexpr char kRoseKey[] = "rose_en";

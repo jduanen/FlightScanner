@@ -6,7 +6,7 @@ namespace ui::radar {
 
 namespace {
 
-constexpr char kStoreNs[] = "flightscnr";
+constexpr char kStoreNs[] = "flightscanner";
 constexpr char kAccentKey[] = "radar_accent";
 
 constexpr RadarAccentColor kDefaultAccent = RadarAccentColor::Green;

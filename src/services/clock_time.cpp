@@ -13,7 +13,7 @@ namespace services::clock {
 
 namespace {
 
-constexpr char kNs[] = "flightscnr";
+constexpr char kNs[] = "flightscanner";
 constexpr char kTzOffsetKey[] = "clk_tz_sec";
 constexpr char kUse24hKey[] = "clk_24h";
 
