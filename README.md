@@ -1,10 +1,8 @@
 # FlightScanner for LilyGO T-Encoder Pro
 
-**WIP**
-
 > This is a modification of the work in https://github.com/yashmulgaonkar/FlightScnr.
 > 
-> Go there for all information about the original project and buy him a coffee:
+> Go there for all information about the original project and buy **him** a coffee:
 <p align="center">
   <a href="https://buymeacoffee.com/yashmulgaonkar" target="_blank">
     <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 35px;">
@@ -19,11 +17,27 @@ I attempted to leave as much as possible of the excellent original project intac
 
 One of the bigger changes to the project is to make the device battery-powered so that it can be carried around the house with me. To this end, I added a battery with a Qi-based wireless charging capability.
 
+I added a Sparkfun Electronics Battery Babysitter board which allows the LilyGO device to remain powered on while the battery is being charged. This battery management board has a LiPo fuel gauge function available over I2C, that provides a series of metrics on the battery (e.g., its charge/discharge state, percentage of total charge remaining, etc.). I added a display page with this information, as well as adding the battery information to the Settings web page.
+
 I want the device to stay powered on at all times so that it will provide instant information. I also want the battery and display to last as long as possible, so I want to implement a screen blanking function that triggers after some period of time (or whenever the device is placed on a wireless charger). Whenever the display is blanked, tapping the touchscreen (or removing it from the charger) with result in the display being instantly turned back on.
 
 I added a screen-blanking function that turns the display on whenever the screen is touched (or the device is removed from the charger) and starts a timer that is reset every time the device is touched again. When this timer expires, the display is turned off. The display is turned on at boot time, when the screen is touched, or when the device is removed from the charging pad. The display remains on until a given time interval after the last time it was touched.
 
-#### Screen Blanking Implementation
+I added a REST API to allow programatic changes to the settings offered in the application's Settings web page.
+
+### Use local ADS-B and Route Service
+
+I have my own (unfiltered, 1080MHz and 980MHz) ADS-B receiver as well as a LAN-based service that provides additional information on flights (such as airline, route, airport, etc.) that I would like to use instead of the built in web-based services in the original project. The information server handles caching as well as falling back to different cloud-based APIs for this, as well as other applications in my home.
+
+See [AircraftRoute](https://github.com/jduanen/AircraftRoute) for more information about this service.
+
+### Add support for Sparkfun Battery Babysitter
+
+The Sparkfun Battery Babysitter board's BQ27441-G1A fuel gauge is connected via the T-Encoder Pro's Qwiic port. The Qwiic connector's SDA/SCL pins are **GPIO16/GPIO15** respectively (the ESP32-S3's XTAL_32K_N/XTAL_32K_P pads, repurposed as GPIO since no 32 kHz crystal is fitted). These are on a separate I2C bus (`Wire1`) from the internal touch controller bus (`Wire`, GPIO5/GPIO6).
+
+The BQ27441 driver polls the gauge every 10 seconds and calls `displayBlankingNotifyCharging()` / `displayBlankingNotifyUncharging()` on charging-state transitions, so the display blanks when placed on the charger and wakes when removed.
+
+#### Add time-based screen blanking
 
 The blanking timeout is configurable via the settings web page ("Screen blanking" dropdown). Available options are Never, 30 seconds, 1 minute, 2 minutes, 5 minutes, and 10 minutes. The default is 1 minute. The setting is stored in NVS under the key `blank_to_s` and survives reboots.
 
@@ -33,13 +47,12 @@ Behavior:
 - The radar sweep animation is paused while the display is off to avoid unnecessary SPI writes.
 - `hardware::displayBlankingNotifyCharging()` and `hardware::displayBlankingNotifyUncharging()` are called by the BQ27441 driver whenever a charging-state transition is detected.
 
-I added a Sparkfun Electronics Battery Babysitter board which allows the LilyGO device to remain powered on while the battery is being charged. This battery management board has a LiPo fuel gauge function available over I2C, and a Settings page (4/4) shows live battery state.
 
-### Settings REST API
+#### Add a REST API to Settings
 
 All settings on the `flightscanner.local` page are also accessible via a REST API served on port 80. Unlike the HTML form, API writes take effect immediately without a reboot (brightness is applied live; route server URL takes effect on the next lookup).
 
-#### GET /api/settings
+##### GET /api/settings
 
 Returns all current settings as JSON.
 
@@ -68,7 +81,7 @@ curl -X GET http://flightscanner.local/api/settings | jq '.'
 }
 ```
 
-#### POST /api/settings
+##### POST /api/settings
 
 Updates one or more settings. Send a JSON body with only the fields you want to change. Returns the full settings object after applying changes.
 
@@ -101,7 +114,7 @@ curl -X POST http://flightscanner.local/api/settings -H 'Content-Type: applicati
 
 Invalid or out-of-range values for a field are silently ignored (the field is left unchanged).
 
-#### GET /api/battery
+##### GET /api/battery
 
 Returns the current state of the BQ27441-G1A fuel gauge. If the gauge is not detected, only `"present": false` is returned.
 
@@ -139,7 +152,7 @@ curl -X GET http://flightscanner.local/api/battery | jq '.'
 | `charging` | bool | `true` while charging current is positive |
 | `full` | bool | `true` when FC flag is set |
 
-#### POST /api/reboot
+##### POST /api/reboot
 
 Triggers a clean reboot. Use this after changes that require it (e.g. Wi-Fi settings).
 
@@ -150,16 +163,6 @@ POST http://flightscanner.local/api/reboot
 ```json
 {"status": "rebooting"}
 ```
-
-### Use local ADS-B and Route Service
-
-I have my own (unfiltered, 1080MHz and 980MHz) ADS-B receiver as well as a LAN-based service that provides additional information on flights (such as airline, route, airport, etc.) that I would like to use instead of the built in web-based services in the original project. The information server handles caching as well as falling back to different cloud-based APIs for this, as well as other applications in my home.
-
-### Add support for Sparkfun Battery Babysitter
-
-The Sparkfun Battery Babysitter board's BQ27441-G1A fuel gauge is connected via the T-Encoder Pro's Qwiic port. The Qwiic connector's SDA/SCL pins are **GPIO16/GPIO15** respectively (the ESP32-S3's XTAL_32K_N/XTAL_32K_P pads, repurposed as GPIO since no 32 kHz crystal is fitted). These are on a separate I2C bus (`Wire1`) from the internal touch controller bus (`Wire`, GPIO5/GPIO6).
-
-The BQ27441 driver polls the gauge every 10 seconds and calls `displayBlankingNotifyCharging()` / `displayBlankingNotifyUncharging()` on charging-state transitions, so the display blanks when placed on the charger and wakes when removed.
 
 ## Hardware
 
@@ -180,7 +183,7 @@ The hardware that I'm using a LilyGO T-Encoder Pro with a Sparkfun Battery Babys
   - Buzzer
   - 5V @ 500mA
 
-**image here**
+[LilyGO T-Encoder Pro](assets/t-encoder-pro-pin-en.jpg)
 
 ### Power Supply
 
@@ -212,7 +215,6 @@ The hardware that I'm using a LilyGO T-Encoder Pro with a Sparkfun Battery Babys
 The wireless charging receiver unit consists of a coil and a small PCB. Most models also provide a self-adhesive-backed sheet of magnetic material to put on the back of the coil to improve the energy transfer and reduce the field effects on the colocated electronics.
 
 **image here**
-
 
 ## License
 
