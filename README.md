@@ -37,7 +37,7 @@ The Sparkfun Battery Babysitter board's BQ27441-G1A fuel gauge is connected via 
 
 The BQ27441 driver polls the gauge every 10 seconds and calls `displayBlankingNotifyCharging()` / `displayBlankingNotifyUncharging()` on charging-state transitions, so the display blanks when placed on the charger and wakes when removed.
 
-#### Add time-based screen blanking
+### Add time-based screen blanking
 
 The blanking timeout is configurable via the settings web page ("Screen blanking" dropdown). Available options are Never, 30 seconds, 1 minute, 2 minutes, 5 minutes, and 10 minutes. The default is 1 minute. The setting is stored in NVS under the key `blank_to_s` and survives reboots.
 
@@ -47,12 +47,11 @@ Behavior:
 - The radar sweep animation is paused while the display is off to avoid unnecessary SPI writes.
 - `hardware::displayBlankingNotifyCharging()` and `hardware::displayBlankingNotifyUncharging()` are called by the BQ27441 driver whenever a charging-state transition is detected.
 
-
-#### Add a REST API to Settings
+### Add a REST API to Settings
 
 All settings on the `flightscanner.local` page are also accessible via a REST API served on port 80. Unlike the HTML form, API writes take effect immediately without a reboot (brightness is applied live; route server URL takes effect on the next lookup).
 
-##### GET /api/settings
+#### GET /api/settings
 
 Returns all current settings as JSON.
 
@@ -81,7 +80,7 @@ curl -X GET http://flightscanner.local/api/settings | jq '.'
 }
 ```
 
-##### POST /api/settings
+#### POST /api/settings
 
 Updates one or more settings. Send a JSON body with only the fields you want to change. Returns the full settings object after applying changes.
 
@@ -114,7 +113,7 @@ curl -X POST http://flightscanner.local/api/settings -H 'Content-Type: applicati
 
 Invalid or out-of-range values for a field are silently ignored (the field is left unchanged).
 
-##### GET /api/battery
+#### GET /api/battery
 
 Returns the current state of the BQ27441-G1A fuel gauge. If the gauge is not detected, only `"present": false` is returned.
 
@@ -152,7 +151,7 @@ curl -X GET http://flightscanner.local/api/battery | jq '.'
 | `charging` | bool | `true` while charging current is positive |
 | `full` | bool | `true` when FC flag is set |
 
-##### POST /api/reboot
+#### POST /api/reboot
 
 Triggers a clean reboot. Use this after changes that require it (e.g. Wi-Fi settings).
 
