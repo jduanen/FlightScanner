@@ -1,4 +1,5 @@
 #include "services/adsb_client.h"
+#include "services/log_capture.h"
 
 #include <Arduino.h>
 #include <HTTPClient.h>
@@ -39,7 +40,7 @@ void logAircraftToSerial(const Aircraft* planes, size_t count, double center_lat
   static size_t s_last_logged_count = SIZE_MAX;
 
   if (config::kAdsbVerboseAircraftLog) {
-    Serial.printf("[adsb] %u aircraft\n", static_cast<unsigned>(count));
+    Log.printf("[adsb] %u aircraft\n", static_cast<unsigned>(count));
     if (count == 0) {
       s_last_logged_count = 0;
       return;
@@ -65,7 +66,7 @@ void logAircraftToSerial(const Aircraft* planes, size_t count, double center_lat
       }
     }
 
-    Serial.println(
+    Log.println(
         "  #  callsign airline              route    type alt       dist    brg  trk   gs");
     for (size_t row = 0; row < count; ++row) {
       const Aircraft& ac = planes[order[row]];
@@ -90,7 +91,7 @@ void logAircraftToSerial(const Aircraft* planes, size_t count, double center_lat
         strncpy(route, "-", sizeof(route) - 1);
         route[sizeof(route) - 1] = '\0';
       }
-      Serial.printf(" %2u  %-7s %-22s %-8s %-4s %-9s %5.1f km %03d deg %4.0f deg %4.0f kt\n",
+      Log.printf(" %2u  %-7s %-22s %-8s %-4s %-9s %5.1f km %03d deg %4.0f deg %4.0f kt\n",
                     static_cast<unsigned>(row + 1), cs, airline, route, ty, alt, dist, brg,
                     ac.track_deg, ac.gs_knots);
     }
@@ -102,7 +103,7 @@ void logAircraftToSerial(const Aircraft* planes, size_t count, double center_lat
     return;
   }
   s_last_logged_count = count;
-  Serial.printf("[adsb] %u aircraft\n", static_cast<unsigned>(count));
+  Log.printf("[adsb] %u aircraft\n", static_cast<unsigned>(count));
 }
 
 constexpr char kPrefsNamespace[] = "flightscanner";
@@ -442,7 +443,7 @@ void trafficFilterBootLoad() {
   prefs.end();
 
   if (s_altitude_floor_ft > 0) {
-    Serial.printf("Traffic altitude floor: %d ft\n", s_altitude_floor_ft);
+    Log.printf("Traffic altitude floor: %d ft\n", s_altitude_floor_ft);
   }
 }
 
@@ -463,9 +464,9 @@ void saveAltitudeFloorFromForm(const char* value) {
   }
   s_altitude_floor_ft = min_ft;
   if (min_ft > 0) {
-    Serial.printf("Traffic altitude floor: %d ft\n", min_ft);
+    Log.printf("Traffic altitude floor: %d ft\n", min_ft);
   } else {
-    Serial.println("Traffic altitude floor off");
+    Log.println("Traffic altitude floor off");
   }
 }
 
@@ -473,7 +474,7 @@ bool parseAircraftPayload(const String& payload, Aircraft* out, size_t* out_coun
   JsonDocument doc;
   const DeserializationError err = deserializeJson(doc, payload);
   if (err) {
-    Serial.printf("[adsb] JSON parse error: %s\n", err.c_str());
+    Log.printf("[adsb] JSON parse error: %s\n", err.c_str());
     return false;
   }
 
@@ -524,7 +525,7 @@ bool fetchUpdateBlocking(double center_lat, double center_lon, float fetch_radiu
 
   services::https::ScopedLock tls(kFetchHttpTimeoutMs + 2000);
   if (!tls.held()) {
-    Serial.println("[adsb] HTTPS busy (fetch skipped)");
+    Log.println("[adsb] HTTPS busy (fetch skipped)");
     return false;
   }
 
@@ -536,7 +537,7 @@ bool fetchUpdateBlocking(double center_lat, double center_lon, float fetch_radiu
 
   HTTPClient http;
   if (!http.begin(client, url)) {
-    Serial.println("[adsb] http.begin failed");
+    Log.println("[adsb] http.begin failed");
     return false;
   }
 
@@ -546,9 +547,9 @@ bool fetchUpdateBlocking(double center_lat, double center_lon, float fetch_radiu
   const int code = http.GET();
   if (code != HTTP_CODE_OK) {
     if (code == HTTPC_ERROR_CONNECTION_REFUSED) {
-      Serial.println("[adsb] HTTP -1 (TLS connect failed, see start_ssl_client above)");
+      Log.println("[adsb] HTTP -1 (TLS connect failed, see start_ssl_client above)");
     } else {
-      Serial.printf("[adsb] HTTP %d\n", code);
+      Log.printf("[adsb] HTTP %d\n", code);
     }
     http.end();
     client.stop();
@@ -651,7 +652,7 @@ void fetchWatchdog(unsigned long now_ms) {
     return;
   }
 
-  Serial.printf("[adsb] fetch stall recovery (%lums busy)\n",
+  Log.printf("[adsb] fetch stall recovery (%lums busy)\n",
                 now_ms - s_fetch_busy_since_ms);
   if (s_fetch_task != nullptr) {
     vTaskDelete(s_fetch_task);

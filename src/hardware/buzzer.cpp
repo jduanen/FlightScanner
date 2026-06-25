@@ -1,4 +1,5 @@
 #include "hardware/buzzer.h"
+#include "services/log_capture.h"
 
 #include <Arduino.h>
 #include <Preferences.h>
@@ -152,7 +153,7 @@ void buzzerSetEnabled(bool enabled) {
   }
   s_enabled = enabled;
   persistSettings();
-  Serial.printf("UI beep: %s\n", s_enabled ? "on" : "off");
+  Log.printf("UI beep: %s\n", s_enabled ? "on" : "off");
 }
 
 void buzzerToneStep(int8_t delta) {
@@ -168,7 +169,7 @@ void buzzerToneStep(int8_t delta) {
   }
   s_tone_index = static_cast<uint8_t>(idx);
   persistSettings();
-  Serial.printf("Beep tone: %c\n", buzzerToneLetter());
+  Log.printf("Beep tone: %c\n", buzzerToneLetter());
 }
 
 void buzzerClick() {

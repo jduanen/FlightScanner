@@ -1,4 +1,5 @@
 #include "hardware/display.h"
+#include "services/log_capture.h"
 
 #include "hardware/display_brightness.h"
 #include "hardware/display_font.h"
@@ -28,15 +29,15 @@ void displayInit() {
     s_panel = new Arduino_CO5300(s_bus, LCD_RST, 0, false, LCD_WIDTH, LCD_HEIGHT,
                                  0, 0, 0, 0);
     Arduino_TFT::setPixelAlign2(true);
-    Serial.println("Display: CO5300");
+    Log.println("Display: CO5300");
   } else {
     s_panel = new Arduino_SH8601(s_bus, LCD_RST, 0, false, LCD_WIDTH, LCD_HEIGHT);
     Arduino_TFT::setPixelAlign2(false);
-    Serial.println("Display: SH8601");
+    Log.println("Display: SH8601");
   }
 
   if (!s_panel->begin(40000000)) {
-    Serial.println("Display init failed");
+    Log.println("Display init failed");
   }
 
   tft.attach(s_panel, true);

@@ -1,4 +1,5 @@
 #include "services/clock_time.h"
+#include "services/log_capture.h"
 
 #include <Arduino.h>
 #include <Preferences.h>
@@ -87,7 +88,7 @@ void bootLoad() {
 
 void startNtp() {
   applyNtpConfig();
-  Serial.printf("Clock: NTP %s / %s (UTC%+d)\n", config::kNtpServer1,
+  Log.printf("Clock: NTP %s / %s (UTC%+d)\n", config::kNtpServer1,
                   config::kNtpServer2, static_cast<int>(s_tz_offset_sec / 3600));
 }
 

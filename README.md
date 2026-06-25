@@ -23,7 +23,9 @@ I want the device to stay powered on at all times so that it will provide instan
 
 I added a screen-blanking function that turns the display on whenever the screen is touched (or the device is removed from the charger) and starts a timer that is reset every time the device is touched again. When this timer expires, the display is turned off. The display is turned on at boot time, when the screen is touched, or when the device is removed from the charging pad. The display remains on until a given time interval after the last time it was touched.
 
-I added a REST API to allow programatic changes to the settings offered in the application's Settings web page.
+I added a REST API to allow programmatic changes to the settings offered in the application's Settings web page.
+
+I added an in-RAM log capture that collects all diagnostic output since boot and makes it available via a browser page and REST endpoint, so the device can be debugged over Wi-Fi without a USB cable.
 
 ### Use local ADS-B and Route Service
 
@@ -46,6 +48,24 @@ Behavior:
 - Any touch, swipe, knob press, or encoder rotation resets the timer. If the display was off, the triggering input wakes the display but is otherwise discarded — no accidental navigation occurs on wake.
 - The radar sweep animation is paused while the display is off to avoid unnecessary SPI writes.
 - `hardware::displayBlankingNotifyCharging()` and `hardware::displayBlankingNotifyUncharging()` are called by the BQ27441 driver whenever a charging-state transition is detected.
+
+### Add in-RAM log capture
+
+All diagnostic output (every `Log.printf` / `Log.println` call in the firmware) is written to both the USB serial port and a 16 KB in-RAM buffer. The buffer is cleared on reboot and is not persisted to flash.
+
+The buffer is exposed two ways:
+
+- **`http://flightscanner.local/log`** — browser page with a live-updating log viewer that auto-refreshes every 5 seconds and scrolls to the most recent entry.
+- **`GET /api/log`** — raw `text/plain` endpoint returning the full buffer, suitable for scripting (see REST API section below).
+
+When the buffer is full, new output continues to reach the serial port but is no longer appended to the buffer. The `/log` page displays "(buffer full)" in the status line when this happens.
+
+The global `Log` object (a `Print`-derived `LogCapture` class in `include/services/log_capture.h`) replaces all direct `Serial.printf` / `Serial.println` calls in the firmware. To add a log statement in new code:
+
+```cpp
+#include "services/log_capture.h"
+Log.printf("[module] message: %d\n", value);
+```
 
 ### Add a REST API to Settings
 
@@ -112,6 +132,18 @@ curl -X POST http://flightscanner.local/api/settings -H 'Content-Type: applicati
 | `route_server_url` | string | base URL, e.g. `"http://192.168.1.x:5000"` |
 
 Invalid or out-of-range values for a field are silently ignored (the field is left unchanged).
+
+#### GET /log
+
+Live log viewer (browser page). See the [in-RAM log capture](#add-in-ram-log-capture) section for full details.
+
+#### GET /api/log
+
+Returns the full log buffer as `text/plain`.
+
+```bash
+curl http://flightscanner.local/api/log
+```
 
 #### GET /api/battery
 

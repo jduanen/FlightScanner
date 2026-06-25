@@ -1,4 +1,5 @@
 #include "hardware/panel.h"
+#include "services/log_capture.h"
 
 #include <Preferences.h>
 #include <Wire.h>
@@ -45,10 +46,10 @@ PanelType probeTouchPanel() {
     return PanelType::DxqSh8601;
   }
   if (cst816 && chsc5816) {
-    Serial.println("Panel: both touch ICs seen — using SH8601 / CHSC5816");
+    Log.println("Panel: both touch ICs seen — using SH8601 / CHSC5816");
     return PanelType::DxqSh8601;
   }
-  Serial.println("Panel: no touch IC detected — defaulting to SH8601 / CHSC5816");
+  Log.println("Panel: no touch IC detected — defaulting to SH8601 / CHSC5816");
   return PanelType::DxqSh8601;
 }
 
@@ -80,24 +81,24 @@ void persistPanel(PanelType type) {
 void panelBootResolve() {
 #if defined(FLIGHTSCANNER_PANEL_TFD12)
   s_panel = PanelType::TfdCo5300;
-  Serial.println("Panel: forced TFD12 / CO5300 / CST816 (build flag)");
+  Log.println("Panel: forced TFD12 / CO5300 / CST816 (build flag)");
   return;
 #elif defined(FLIGHTSCANNER_PANEL_DXQ)
   s_panel = PanelType::DxqSh8601;
-  Serial.println("Panel: forced DXQ120 / SH8601 / CHSC5816 (build flag)");
+  Log.println("Panel: forced DXQ120 / SH8601 / CHSC5816 (build flag)");
   return;
 #endif
 
   PanelType stored = PanelType::DxqSh8601;
   if (readStoredPanel(&stored)) {
     s_panel = stored;
-    Serial.printf("Panel: %s (saved)\n", panelTypeName());
+    Log.printf("Panel: %s (saved)\n", panelTypeName());
     return;
   }
 
   s_panel = probeTouchPanel();
   persistPanel(s_panel);
-  Serial.printf("Panel: %s (auto-detected, saved)\n", panelTypeName());
+  Log.printf("Panel: %s (auto-detected, saved)\n", panelTypeName());
 }
 
 PanelType panelType() { return s_panel; }

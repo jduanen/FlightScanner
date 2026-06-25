@@ -1,4 +1,5 @@
 #include "hardware/display_blanking.h"
+#include "services/log_capture.h"
 
 #include <Preferences.h>
 #include <cstdlib>
@@ -64,7 +65,7 @@ void displayWake() {
   }
   s_awake = true;
   displayApplyBrightness();
-  Serial.println("[blank] display on");
+  Log.println("[blank] display on");
 }
 
 void displayBlank() {
@@ -76,7 +77,7 @@ void displayBlank() {
   if (panel != nullptr) {
     panel->Display_Brightness(0);
   }
-  Serial.println("[blank] display off");
+  Log.println("[blank] display off");
 }
 
 uint16_t displayBlankingTimeoutSec() { return s_timeout_sec; }
@@ -111,7 +112,7 @@ void displayBlankingSaveTimeoutFromForm(const char* seconds_str) {
     prefs.putUShort(kBlankTimeoutKey, s_timeout_sec);
     prefs.end();
   }
-  Serial.printf("[blank] timeout: %us\n", static_cast<unsigned>(s_timeout_sec));
+  Log.printf("[blank] timeout: %us\n", static_cast<unsigned>(s_timeout_sec));
 }
 
 }  // namespace hardware

@@ -1,4 +1,5 @@
 #include "services/settings_web.h"
+#include "services/log_capture.h"
 
 #include <ArduinoJson.h>
 #include <WebServer.h>
@@ -31,7 +32,7 @@ WebServer* s_server = nullptr;
 bool s_active = false;
 
 /** Static storage — must not live on loopTask stack (~8 KB). */
-constexpr size_t kSettingsPageCap = 9216;
+constexpr size_t kSettingsPageCap = 10240;
 char s_settings_page[kSettingsPageCap];
 
 const char kPageHead[] = R"HTML(<!DOCTYPE html>
@@ -140,6 +141,14 @@ void handleSettingsPage() {
   const int head_n = snprintf(page, kSettingsPageCap, "%s", kPageHead);
   if (head_n > 0) {
     used = static_cast<size_t>(head_n);
+  }
+
+  const int log_link_n = snprintf(
+      page + used, kSettingsPageCap - used,
+      "<p style=\"margin:.25rem 0 .75rem\">"
+      "<a href=\"/log\" style=\"color:#6cf;font-size:.85rem\">View device log &rarr;</a></p>");
+  if (log_link_n > 0) {
+    used += static_cast<size_t>(log_link_n);
   }
 
   char center_value[48];
@@ -358,7 +367,7 @@ void handleSave() {
       s_server->arg("show_sweep").c_str(), s_server->arg("detail_timeout").c_str(),
       s_server->arg("blank_timeout").c_str());
 
-  Serial.printf("Settings web save (lat/lon %s)\n", loc_ok ? "ok" : "invalid");
+  Log.printf("Settings web save (lat/lon %s)\n", loc_ok ? "ok" : "invalid");
 
   if (!loc_ok) {
     sendLocationErrorPage();
@@ -478,6 +487,50 @@ void handleApiSettings() {
   }
 }
 
+const char kLogPage[] = R"HTML(<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FlightScanner &#8211; Log</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:1rem;background:#000;color:#e8f0ff;}
+h1{font-size:1.1rem;margin:0 0 .25rem;}
+a{color:#6cf;}
+.bar{display:flex;align-items:center;gap:1rem;margin:.5rem 0;}
+#st{font-size:.8rem;color:#9ab;}
+#log{background:#111;border:1px solid #345;border-radius:6px;padding:.75rem;
+font-family:monospace;font-size:.75rem;line-height:1.4;white-space:pre-wrap;
+word-break:break-all;height:calc(100vh - 7rem);overflow-y:auto;}
+</style>
+</head><body>
+<h1>FlightScanner &#8211; Log</h1>
+<div class="bar"><a href="/">&larr; Settings</a><span id="st">Loading&hellip;</span></div>
+<div id="log"></div>
+<script>
+var el=document.getElementById('log'),st=document.getElementById('st');
+function load(){
+  fetch('/api/log').then(function(r){return r.text();}).then(function(t){
+    var atBot=el.scrollHeight-el.scrollTop<=el.clientHeight+20;
+    el.textContent=t;
+    if(atBot)el.scrollTop=el.scrollHeight;
+    st.textContent='Updated '+new Date().toLocaleTimeString()+
+      ' – '+t.length+' B'+(t.length>=16383?' (buffer full)':'');
+  }).catch(function(e){st.textContent='Error: '+e;});
+}
+load();setInterval(load,5000);
+</script>
+</body></html>
+)HTML";
+
+void handleLogPage() {
+  s_server->send(200, "text/html; charset=utf-8", kLogPage);
+}
+
+void handleApiLog() {
+  apiSendCors();
+  s_server->send(200, "text/plain; charset=utf-8", Log.buffer());
+}
+
 void handleApiBattery() {
   if (s_server->method() != HTTP_GET) {
     apiSendCors();
@@ -521,6 +574,8 @@ void registerRoutes() {
   s_server->on("/settings", HTTP_GET, handleSettingsPage);
   s_server->on("/save", HTTP_POST, handleSave);
   s_server->on("/api/settings", handleApiSettings);
+  s_server->on("/log", HTTP_GET, handleLogPage);
+  s_server->on("/api/log", HTTP_GET, handleApiLog);
   s_server->on("/api/battery", HTTP_GET, handleApiBattery);
   s_server->on("/api/reboot", handleApiReboot);
   s_server->onNotFound(handleNotFound);
@@ -551,14 +606,14 @@ void settingsWebStart() {
   MDNS.end();
   if (MDNS.begin(config::kPortalHostname)) {
     MDNS.addService("http", "tcp", 80);
-    Serial.printf("Settings web: http://%s.local/  http://%s/\n",
+    Log.printf("Settings web: http://%s.local/  http://%s/\n",
                   config::kPortalHostname, WiFi.localIP().toString().c_str());
   } else {
-    Serial.printf("Settings web: http://%s/  (mDNS unavailable)\n",
+    Log.printf("Settings web: http://%s/  (mDNS unavailable)\n",
                   WiFi.localIP().toString().c_str());
   }
 #else
-  Serial.printf("Settings web: http://%s/\n", WiFi.localIP().toString().c_str());
+  Log.printf("Settings web: http://%s/\n", WiFi.localIP().toString().c_str());
 #endif
 }
 

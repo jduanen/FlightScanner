@@ -1,4 +1,5 @@
 #include "ui/radar_scale.h"
+#include "services/log_capture.h"
 
 #include "ui/radar_theme.h"
 
@@ -121,13 +122,13 @@ bool distanceInMiles() { return s_distance_in_miles; }
 void toggleDistanceUnits() {
   s_distance_in_miles = !s_distance_in_miles;
   persistBool(kDistMiKey, s_distance_in_miles);
-  Serial.printf("Distance units: %s\n", s_distance_in_miles ? "miles" : "km");
+  Log.printf("Distance units: %s\n", s_distance_in_miles ? "miles" : "km");
 }
 
 void saveDistanceUnitsFromForm(const char* checkbox_value) {
   s_distance_in_miles = formCheckboxOn(checkbox_value);
   persistBool(kDistMiKey, s_distance_in_miles);
-  Serial.printf("Distance units: %s\n", s_distance_in_miles ? "miles" : "km");
+  Log.printf("Distance units: %s\n", s_distance_in_miles ? "miles" : "km");
 }
 
 bool showCompassRose() { return s_compass_rose; }
@@ -135,13 +136,13 @@ bool showCompassRose() { return s_compass_rose; }
 void toggleCompassRose() {
   s_compass_rose = !s_compass_rose;
   persistBool(kRoseKey, s_compass_rose);
-  Serial.printf("Compass rose: %s\n", s_compass_rose ? "on" : "off");
+  Log.printf("Compass rose: %s\n", s_compass_rose ? "on" : "off");
 }
 
 void saveCompassRoseFromForm(const char* checkbox_value) {
   s_compass_rose = formCheckboxOn(checkbox_value);
   persistBool(kRoseKey, s_compass_rose);
-  Serial.printf("Compass rose: %s\n", s_compass_rose ? "on" : "off");
+  Log.printf("Compass rose: %s\n", s_compass_rose ? "on" : "off");
 }
 
 void formatScaleTag(char* buf, size_t len, float label_km, bool use_miles) {

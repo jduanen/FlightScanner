@@ -1,4 +1,5 @@
 #include "services/map_center.h"
+#include "services/log_capture.h"
 
 #include <Preferences.h>
 #include <cstdlib>
@@ -105,7 +106,7 @@ bool applyPortalCoordinates(const char* lat_str, const char* lon_str) {
     return false;
   }
   writeFlash(lat, lon);
-  Serial.printf("Map center saved: %.6f, %.6f\n", lat, lon);
+  Log.printf("Map center saved: %.6f, %.6f\n", lat, lon);
   return true;
 }
 
@@ -149,7 +150,7 @@ bool applyRadarCenterFromForm(const char* center_str) {
     return false;
   }
   writeFlash(lat, lon);
-  Serial.printf("Map center saved: %.6f, %.6f\n", lat, lon);
+  Log.printf("Map center saved: %.6f, %.6f\n", lat, lon);
   return true;
 }
 

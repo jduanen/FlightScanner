@@ -1,4 +1,5 @@
 #include "hardware/input.h"
+#include "services/log_capture.h"
 
 #include <Wire.h>
 
@@ -142,12 +143,12 @@ void onCst816Interrupt() {
 void initTouchChsc5816() {
   s_touch.setPins(TOUCH_RST, TOUCH_INT);
   if (!s_touch.begin(Wire, CHSC5816_SLAVE_ADDRESS, IIC_SDA, IIC_SCL)) {
-    Serial.println("CHSC5816 touch init failed — encoder/knob only");
+    Log.println("CHSC5816 touch init failed — encoder/knob only");
     s_touch_ready = false;
     return;
   }
   s_touch_ready = true;
-  Serial.println("CHSC5816 touch ready");
+  Log.println("CHSC5816 touch ready");
 }
 
 void initTouchCst816() {
@@ -155,7 +156,7 @@ void initTouchCst816() {
   s_cst816 = std::unique_ptr<Arduino_IIC>(new Arduino_CST816x(
       s_cst816_bus, CST816_SLAVE_ADDRESS, TOUCH_RST, TOUCH_INT, onCst816Interrupt));
   if (!s_cst816->begin()) {
-    Serial.println("CST816 touch init failed — encoder/knob only");
+    Log.println("CST816 touch init failed — encoder/knob only");
     s_touch_ready = false;
     return;
   }
@@ -163,7 +164,7 @@ void initTouchCst816() {
       s_cst816->Arduino_IIC_Touch::Device::TOUCH_DEVICE_INTERRUPT_MODE,
       s_cst816->Arduino_IIC_Touch::Device_Mode::TOUCH_DEVICE_INTERRUPT_PERIODIC);
   s_touch_ready = true;
-  Serial.println("CST816 touch ready");
+  Log.println("CST816 touch ready");
 }
 
 void initTouch() {
@@ -381,7 +382,7 @@ void inputPollLongPress() {
 
     if (!s_long_press_handled && millis() - down_ms >= config::kKnobResetHoldMs) {
       s_long_press_handled = true;
-      Serial.println("Knob held, resetting Wi-Fi");
+      Log.println("Knob held, resetting Wi-Fi");
       wifiResetCredentialsAndReboot();
     }
   } else {

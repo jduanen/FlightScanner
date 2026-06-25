@@ -1,4 +1,5 @@
 #include "ui/radar_accent.h"
+#include "services/log_capture.h"
 
 #include <Preferences.h>
 
@@ -87,7 +88,7 @@ void accentStep(int8_t delta) {
   }
   s_accent = static_cast<RadarAccentColor>(idx);
   persistAccent();
-  Serial.printf("Radar accent: %s\n", accentColorName());
+  Log.printf("Radar accent: %s\n", accentColorName());
 }
 
 }  // namespace ui::radar

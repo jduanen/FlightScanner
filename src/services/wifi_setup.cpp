@@ -1,4 +1,5 @@
 #include "services/wifi_setup.h"
+#include "services/log_capture.h"
 
 #include <WiFi.h>
 #include <WiFiManager.h>
@@ -162,7 +163,7 @@ void eraseWifiCredentials() {
 void resetWifiCredentials() {
   markForceConfigPortal();
   eraseWifiCredentials();
-  Serial.println("WiFi credentials cleared");
+  Log.println("WiFi credentials cleared");
 }
 
 void onConfigPortalApStarted(WiFiManager*) {
@@ -171,13 +172,13 @@ void onConfigPortalApStarted(WiFiManager*) {
   MDNS.end();
   if (MDNS.begin(config::kPortalHostname)) {
     MDNS.addService("http", "tcp", 80);
-    Serial.printf("Setup portal: http://%s.local (or http://%s)\n",
+    Log.printf("Setup portal: http://%s.local (or http://%s)\n",
                   config::kPortalHostname, config::kPortalIp);
   } else {
-    Serial.printf("Setup portal: http://%s (mDNS unavailable)\n", config::kPortalIp);
+    Log.printf("Setup portal: http://%s (mDNS unavailable)\n", config::kPortalIp);
   }
 #else
-  Serial.printf("Setup portal: http://%s\n", config::kPortalIp);
+  Log.printf("Setup portal: http://%s\n", config::kPortalIp);
 #endif
 }
 
@@ -245,7 +246,7 @@ bool tryConnectWithUi(const String& ssid, const String& pass, bool show_ui) {
 
   for (uint8_t attempt = 1; attempt <= config::kWifiConnectAttempts; ++attempt) {
     if (attempt > 1) {
-      Serial.printf("WiFi connect retry %u/%u\n", attempt,
+      Log.printf("WiFi connect retry %u/%u\n", attempt,
                     config::kWifiConnectAttempts);
       WiFi.disconnect(true);
       WiFi.mode(WIFI_OFF);
@@ -287,7 +288,7 @@ bool openConfigPortal(WiFiManager& wm) {
   // wait on getConfigPortalActive() instead.
   wm.startConfigPortal(config::kPortalApName);
   if (!wm.getConfigPortalActive()) {
-    Serial.println("Config portal failed to start");
+    Log.println("Config portal failed to start");
     return false;
   }
 
@@ -307,10 +308,10 @@ bool runConfigPortalFlow() {
     return false;
   }
 
-  Serial.printf("Connected: %s  IP %s\n", WiFi.SSID().c_str(),
+  Log.printf("Connected: %s  IP %s\n", WiFi.SSID().c_str(),
                 WiFi.localIP().toString().c_str());
   onStaLinkReady();
-  Serial.println("WiFi configured — rebooting");
+  Log.println("WiFi configured — rebooting");
   delay(400);
   esp_restart();
   return false;
@@ -339,7 +340,7 @@ void wifiResetCredentialsAndReboot() {
 }
 
 bool wifiReconnect() {
-  Serial.println("WiFi reconnecting...");
+  Log.println("WiFi reconnecting...");
   if (!storedWifiCredentials()) {
     return false;
   }
@@ -357,34 +358,34 @@ bool wifiSetupConnect() {
   }
 
   if (force_portal) {
-    Serial.println("Opening WiFi setup portal (after reset)");
+    Log.println("Opening WiFi setup portal (after reset)");
     if (runConfigPortalFlow()) {
       return true;
     }
-    Serial.println("WiFi connection failed");
+    Log.println("WiFi connection failed");
     bootScreenShowConnectFailed();
     return false;
   }
 
-  Serial.println("Connecting to WiFi (portal opens if needed)...");
+  Log.println("Connecting to WiFi (portal opens if needed)...");
 
   if (wifiLinkUp()) {
-    Serial.printf("Connected: %s  IP %s\n", WiFi.SSID().c_str(),
+    Log.printf("Connected: %s  IP %s\n", WiFi.SSID().c_str(),
                   WiFi.localIP().toString().c_str());
     onStaLinkReady();
     return true;
   }
 
   if (storedWifiCredentials() && connectSavedNetwork(true)) {
-    Serial.printf("Connected: %s  IP %s\n", WiFi.SSID().c_str(),
+    Log.printf("Connected: %s  IP %s\n", WiFi.SSID().c_str(),
                   WiFi.localIP().toString().c_str());
     return true;
   }
 
   if (storedWifiCredentials()) {
-    Serial.println("Saved WiFi could not connect, opening setup portal");
+    Log.println("Saved WiFi could not connect, opening setup portal");
   } else {
-    Serial.println("No saved WiFi, opening setup portal");
+    Log.println("No saved WiFi, opening setup portal");
   }
   bootScreenShowPortalHint();
 
@@ -392,7 +393,7 @@ bool wifiSetupConnect() {
     return true;
   }
 
-  Serial.println("WiFi connection failed");
+  Log.println("WiFi connection failed");
   bootScreenShowConnectFailed();
   return false;
 }

@@ -1,4 +1,5 @@
 #include "ui/radar_display.h"
+#include "services/log_capture.h"
 
 #include <algorithm>
 #include <cmath>
@@ -576,7 +577,7 @@ void drawStaticGrid(GfxRef& gfx) {
 bool rebuildBackgroundSprite() {
   if (!s_bg_ready) {
     if (!s_bg.createSprite(radar::kSize, radar::kSize)) {
-      Serial.println("radar: background sprite alloc failed");
+      Log.println("radar: background sprite alloc failed");
       return false;
     }
     s_bg_ready = true;
@@ -592,7 +593,7 @@ bool ensureContentSprite() {
     return true;
   }
   if (!s_content.createSprite(radar::kSize, radar::kSize)) {
-    Serial.println("radar: content sprite alloc failed");
+    Log.println("radar: content sprite alloc failed");
     return false;
   }
   s_content_ready = true;

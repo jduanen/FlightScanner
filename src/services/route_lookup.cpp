@@ -1,4 +1,5 @@
 #include "services/route_lookup.h"
+#include "services/log_capture.h"
 
 #include <Arduino.h>
 
@@ -247,7 +248,7 @@ void logRouteLine(const char* callsign, const RouteInfo& route, const char* tag)
     strncpy(leg, "—", sizeof(leg) - 1);
     leg[sizeof(leg) - 1] = '\0';
   }
-  Serial.printf("[route] %s -> %s %s [%s]\n", callsign,
+  Log.printf("[route] %s -> %s %s [%s]\n", callsign,
                 route.airline[0] != '\0' ? route.airline : "(no airline)", leg, tag);
 }
 
@@ -319,7 +320,7 @@ void startDetailWorker(const char* callsign) {
   s_detail_worker_callsign[sizeof(s_detail_worker_callsign) - 1] = '\0';
   s_detail_ready = false;
   s_detail_requested = true;
-  Serial.printf("Route lookup: detail enrich %s\n", callsign);
+  Log.printf("Route lookup: detail enrich %s\n", callsign);
 }
 
 void drainDetailPending() {
@@ -603,9 +604,9 @@ void init() {
   route_server::load();
   memset(s_cache, 0, sizeof(s_cache));
   if (apiAvailable()) {
-    Serial.printf("Route lookup: route server %s\n", route_server::url());
+    Log.printf("Route lookup: route server %s\n", route_server::url());
   } else {
-    Serial.println("Route lookup: no route server configured");
+    Log.println("Route lookup: no route server configured");
   }
 }
 

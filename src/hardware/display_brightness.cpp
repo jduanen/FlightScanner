@@ -1,4 +1,5 @@
 #include "hardware/display_brightness.h"
+#include "services/log_capture.h"
 
 #include <Preferences.h>
 #include <cstdlib>
@@ -72,7 +73,7 @@ void displayBrightnessStep(int8_t delta) {
   }
 
   displayApplyBrightness();
-  Serial.printf("Brightness: %u%%\n", static_cast<unsigned>(s_percent));
+  Log.printf("Brightness: %u%%\n", static_cast<unsigned>(s_percent));
 }
 
 void displayBrightnessSaveFromForm(const char* percent_str) {
@@ -94,7 +95,7 @@ void displayBrightnessSaveFromForm(const char* percent_str) {
     prefs.putUChar(kBrightPctKey, s_percent);
     prefs.end();
   }
-  Serial.printf("Brightness: %u%%\n", static_cast<unsigned>(s_percent));
+  Log.printf("Brightness: %u%%\n", static_cast<unsigned>(s_percent));
 }
 
 }  // namespace hardware

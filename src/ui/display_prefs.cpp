@@ -1,4 +1,5 @@
 #include "ui/display_prefs.h"
+#include "services/log_capture.h"
 
 #include <Preferences.h>
 #include <cstdlib>
@@ -114,7 +115,7 @@ void displayPrefsFlightDetailTimeoutStep(int8_t delta) {
   }
   s_flight_detail_timeout_sec = kTimeoutOptions[static_cast<size_t>(idx)];
   persistDetailTimeout();
-  Serial.printf("Flight detail timeout: %s\n", displayPrefsFlightDetailTimeoutLabel());
+  Log.printf("Flight detail timeout: %s\n", displayPrefsFlightDetailTimeoutLabel());
 }
 
 void displayPrefsSaveFlightDetailTimeoutFromForm(const char* seconds_str) {
@@ -135,7 +136,7 @@ void displayPrefsSaveFlightDetailTimeoutFromForm(const char* seconds_str) {
   }
   s_flight_detail_timeout_sec = sec;
   persistDetailTimeout();
-  Serial.printf("Flight detail timeout: %s\n", displayPrefsFlightDetailTimeoutLabel());
+  Log.printf("Flight detail timeout: %s\n", displayPrefsFlightDetailTimeoutLabel());
 }
 
 bool displayPrefsSweepLineEnabled() { return s_sweep_line_enabled; }
@@ -143,13 +144,13 @@ bool displayPrefsSweepLineEnabled() { return s_sweep_line_enabled; }
 void displayPrefsToggleSweepLine() {
   s_sweep_line_enabled = !s_sweep_line_enabled;
   persistSweepLine();
-  Serial.printf("Radar sweep: %s\n", s_sweep_line_enabled ? "on" : "off");
+  Log.printf("Radar sweep: %s\n", s_sweep_line_enabled ? "on" : "off");
 }
 
 void displayPrefsSaveSweepLineFromForm(const char* checkbox_value) {
   s_sweep_line_enabled = formCheckboxOn(checkbox_value);
   persistSweepLine();
-  Serial.printf("Radar sweep: %s\n", s_sweep_line_enabled ? "on" : "off");
+  Log.printf("Radar sweep: %s\n", s_sweep_line_enabled ? "on" : "off");
 }
 
 }  // namespace ui

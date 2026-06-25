@@ -3,6 +3,7 @@
  */
 
 #include <Arduino.h>
+#include "services/log_capture.h"
 #include <WiFi.h>
 
 #include <esp_heap_caps.h>
@@ -119,7 +120,7 @@ void logDiagLine(const char* tag) {
   const uint32_t loop_stack =
       static_cast<uint32_t>(uxTaskGetStackHighWaterMark(nullptr) * sizeof(StackType_t));
 
-  Serial.printf(
+  Log.printf(
       "[diag] %s uptime=%uh%02um free=%u min=%u max_blk=%u psram=%u wifi=%s rssi=%d "
       "screen=%s ac=%u adsb_ok=%s adsb_busy=%u adsb_fail=%u stk_loop=%u stk_adsb=%u "
       "loop_max=%lums\n",
@@ -220,7 +221,7 @@ void returnToRadar(bool from_idle_timeout = false) {
   if (WiFi.status() == WL_CONNECTED) {
     showRadar();
   }
-  Serial.println(from_idle_timeout ? "Screen: radar (timeout)"
+  Log.println(from_idle_timeout ? "Screen: radar (timeout)"
                                    : "Screen: radar");
 }
 
@@ -229,7 +230,7 @@ void returnToClockFromIdleTimeout() {
   inputDiscardPendingInteractions();
   g_screen = AppScreen::Clock;
   showClock();
-  Serial.println("Screen: clock (timeout)");
+  Log.println("Screen: clock (timeout)");
 }
 
 void openSettingsFromRadar() {
@@ -237,20 +238,20 @@ void openSettingsFromRadar() {
   g_screen = AppScreen::Settings;
   noteSecondaryActivity();
   showSettings();
-  Serial.println("Screen: settings (1/4)");
+  Log.println("Screen: settings (1/4)");
 }
 
 void openClockFromRadar() {
   g_screen = AppScreen::Clock;
   showClock();
-  Serial.println("Screen: clock");
+  Log.println("Screen: clock");
 }
 
 void openDetailsFromRadar() {
   g_screen = AppScreen::Details;
   noteSecondaryActivity();
   showDetails();
-  Serial.println("Screen: details");
+  Log.println("Screen: details");
 }
 
 void openClockSettingsFromClock() {
@@ -258,7 +259,7 @@ void openClockSettingsFromClock() {
   g_screen = AppScreen::ClockSettings;
   noteSecondaryActivity();
   showClockSettings();
-  Serial.println("Screen: clock settings");
+  Log.println("Screen: clock settings");
 }
 
 void openFlightDetailFromRadar(int16_t tap_x, int16_t tap_y, bool from_screen_tap) {
@@ -272,7 +273,7 @@ void openFlightDetailFromRadar(int16_t tap_x, int16_t tap_y, bool from_screen_ta
   inputDiscardPendingInteractions();
   requestFlightDetailRouteEnrich(true);
   showFlightDetail();
-  Serial.println("Screen: flight detail");
+  Log.println("Screen: flight detail");
 }
 
 void onFlightDetailStep(int8_t delta) {
@@ -298,7 +299,7 @@ void onRangeStep(int8_t delta) {
   }
   char range_label[12];
   ui::radar::formatActiveScaleTag(range_label, sizeof(range_label));
-  Serial.printf("Scale: %s (coverage ~%.0f km)\n", range_label,
+  Log.printf("Scale: %s (coverage ~%.0f km)\n", range_label,
                 ui::radar::scaleActive().coverage_km);
 
   if (g_radar_visible && WiFi.status() == WL_CONNECTED) {
@@ -330,7 +331,7 @@ void handleNavigation() {
   } else if (swipe == SwipeRight && g_screen == AppScreen::ClockSettings) {
     g_screen = AppScreen::Clock;
     showClock();
-    Serial.println("Screen: clock");
+    Log.println("Screen: clock");
   } else if (swipe == SwipeLeft && g_screen == AppScreen::Radar) {
     openSettingsFromRadar();
   } else if (swipe == SwipeLeft && g_screen == AppScreen::Settings &&
@@ -338,22 +339,22 @@ void handleNavigation() {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Display);
     ui::infoScreenResetDisplayFocus();
     showSettings();
-    Serial.println("Screen: settings (2/4)");
+    Log.println("Screen: settings (2/4)");
   } else if (swipe == SwipeLeft && g_screen == AppScreen::Settings &&
              ui::infoScreenPage() == ui::InfoSettingsPage::Display) {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Colors);
     showSettings();
-    Serial.println("Screen: settings (3/4)");
+    Log.println("Screen: settings (3/4)");
   } else if (swipe == SwipeLeft && g_screen == AppScreen::Settings &&
              ui::infoScreenPage() == ui::InfoSettingsPage::Colors) {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Battery);
     showSettings();
-    Serial.println("Screen: settings (4/4)");
+    Log.println("Screen: settings (4/4)");
   } else if (swipe == SwipeRight && g_screen == AppScreen::Settings &&
              ui::infoScreenPage() == ui::InfoSettingsPage::Battery) {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Colors);
     showSettings();
-    Serial.println("Screen: settings (3/4)");
+    Log.println("Screen: settings (3/4)");
   } else if (swipe == SwipeRight && g_screen == AppScreen::FlightDetail) {
     returnToRadar(false);
   } else if (swipe == SwipeRight && g_screen == AppScreen::Settings &&
@@ -361,12 +362,12 @@ void handleNavigation() {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Display);
     ui::infoScreenResetDisplayFocus();
     showSettings();
-    Serial.println("Screen: settings (2/4)");
+    Log.println("Screen: settings (2/4)");
   } else if (swipe == SwipeRight && g_screen == AppScreen::Settings &&
              ui::infoScreenPage() == ui::InfoSettingsPage::Display) {
     ui::infoScreenSetPage(ui::InfoSettingsPage::Main);
     showSettings();
-    Serial.println("Screen: settings (1/4)");
+    Log.println("Screen: settings (1/4)");
   } else if (swipe == SwipeRight && g_screen == AppScreen::Settings) {
     returnToRadar(false);
   }
@@ -383,7 +384,7 @@ void tickBootDetailsSplash() {
   g_boot_details_until_ms = 0;
   inputDiscardPendingInteractions();
   returnToRadar(false);
-  Serial.println("Screen: radar (boot splash done)");
+  Log.println("Screen: radar (boot splash done)");
 }
 
 void tickSecondaryScreenTimeout() {
@@ -559,7 +560,7 @@ void tickAdsbFetch() {
       services::adsb::lastFetchOkAgeMs() > 60000UL &&
       now - g_last_adsb_ssl_recover_ms >= 120000UL) {
     g_last_adsb_ssl_recover_ms = now;
-    Serial.println("[adsb] repeated TLS failures — recycling WiFi");
+    Log.println("[adsb] repeated TLS failures — recycling WiFi");
     wifiReconnect();
   }
 
@@ -579,9 +580,9 @@ void tickAdsbFetch() {
 void setup() {
   Serial.begin(115200);
   delay(500);
-  Serial.println();
-  Serial.printf("[diag] boot reset=%s fw=%s\n", resetReasonName(), config::kFirmwareVersion);
-  Serial.println("FlightScanner (T-Encoder Pro)");
+  Log.println();
+  Log.printf("[diag] boot reset=%s fw=%s\n", resetReasonName(), config::kFirmwareVersion);
+  Log.println("FlightScanner (T-Encoder Pro)");
 
   hardware::panelBootResolve();
   hardware::batteryGaugeInit();
@@ -604,7 +605,7 @@ void setup() {
     g_screen = AppScreen::Details;
     g_boot_details_until_ms = millis() + config::kBootDetailsDurationMs;
     showDetails(true);
-    Serial.println("Screen: details (boot splash)");
+    Log.println("Screen: details (boot splash)");
     logDiagLine("boot");
   }
 
@@ -627,7 +628,7 @@ void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     settingsWebStop();
     if (g_radar_visible) {
-      Serial.println("[wifi] lost — will reconnect");
+      Log.println("[wifi] lost — will reconnect");
       g_radar_visible = false;
     }
 

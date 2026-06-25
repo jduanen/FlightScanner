@@ -1,4 +1,5 @@
 #include "hardware/battery_gauge.h"
+#include "services/log_capture.h"
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -84,12 +85,12 @@ void batteryGaugeInit() {
 
   Wire1.beginTransmission(kAddr);
   if (Wire1.endTransmission() != 0) {
-    Serial.println("[battery] BQ27441 not found");
+    Log.println("[battery] BQ27441 not found");
     return;
   }
 
   s_state.present = true;
-  Serial.println("[battery] BQ27441 found");
+  Log.println("[battery] BQ27441 found");
   readState();
   s_was_charging = s_state.charging;
   s_last_poll_ms = millis();
@@ -110,7 +111,7 @@ void batteryGaugePoll() {
   s_last_poll_ms = now;
   readState();
 
-  Serial.printf("[battery] SOC=%u%% V=%umV I=%dmA remain=%umAh\n",
+  Log.printf("[battery] SOC=%u%% V=%umV I=%dmA remain=%umAh\n",
                 s_state.soc, s_state.voltage_mv,
                 static_cast<int>(s_state.current_ma), s_state.remain_mah);
 
